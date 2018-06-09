@@ -1,0 +1,23 @@
+TODO- levarer
+1) why:
+void foo()
+{
+not legal?
+
+2) implementation of an identifying method for everything- method, each type, blocks
+
+3) implementation of a data structure that contains everything that can exist once (variables, variable names)
+4) different dict for global var. and another for local
+5) in s-java, what is the difference between declaring a local vs. global variable inside the same method?
+    especially variables with the same name.
+6) everytime a method is recognized, initialize a method's variables dictionary
+-make array of final variables
+-recursive method for indentifying scopes inside methods
+-legallity of local variable (5.2.2, never used or assigned in the next appearance)
+-notice types hirarchy
+-5.2.3 assigning global values in a wierd way
+-array of methods
+-local method- possible in s-java?
+-legality check of boolean variable
+-legality of lines in a scope, and use it in the validity of method's body
+-comments with a whitespace before it is illegal
