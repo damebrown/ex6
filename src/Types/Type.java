@@ -1,0 +1,4 @@
+package Types;
+
+interface Type {
+}
