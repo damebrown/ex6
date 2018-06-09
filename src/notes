@@ -21,3 +21,4 @@ not legal?
 -legality check of boolean variable
 -legality of lines in a scope, and use it in the validity of method's body
 -comments with a whitespace before it is illegal
+todo EXCEPTIONS!
