@@ -1,0 +1,4 @@
+find a method string - need to add comments ""\\" and "{"
+^\s*\b(\w)\b\(\s*\b(String|int|boolean|double)\b\s*\b(\w)\b\s*\)\s*$
+
+(v
