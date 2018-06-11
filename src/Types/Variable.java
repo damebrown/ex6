@@ -17,5 +17,7 @@ public abstract class Variable {
         this.name = name;
         this.value = value;
     }
+
+    Variable(){}
 }
 
