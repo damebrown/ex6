@@ -1,5 +1,6 @@
 package main;
-import Scope.*;
+
+import Scope.MethodScope;
 import Types.Variable;
 
 import java.io.BufferedReader;
@@ -10,9 +11,6 @@ import java.util.ArrayList;
 import java.util.regex.*;
 
 public class Sjavac {
-    public static final String OPENING_BRACKET = "{";
-    public static final String CLOSING_BRACKET = "}";
-    public static final String GLOBAL_VAR_PREFIX = "^ *(int|String|double|char|boolean) +(\\w+)";
 
     //scope factory and variable factory- primary scanning the code and creating
     //the syntax-
@@ -21,74 +19,95 @@ public class Sjavac {
     //call matcher.find() or matcher.matches();
 
     /*Constants*/
-    private File checkedFile;
+    private static File checkedFile;
 
-    private BufferedReader lineReader;
+    private static BufferedReader lineReader;
 
-    private int openingCurlyBracketCounter=0;
+    private static int openingCurlyBracketCounter=0, closingCurlyBracketCounter=0;
 
-    private int closingCurlyBracketCounter=0;
+    private static boolean METHOD_SCOPE_FLAG=false;
 
-    private ArrayList<Variable> globalVariablesArray = new ArrayList<>();
+    public static ArrayList<Variable> globalVariablesArray = new ArrayList<>();
 
     public ArrayList<String> linesArray = new ArrayList<>();
 
     public ArrayList<MethodScope> methodsArray = new ArrayList<>();
+
+    public static final Pattern OPENING_BRACKET_PATTERN =Pattern.compile("(\\{)");
+    public static final Pattern CLOSING_BRACKET_PATTERN =Pattern.compile("(^ *(}))");
+    public static final Pattern VARIABLE_DECLARATION_PATTERN =
+            Pattern.compile("^[ ]*(final )*[ ]*\\b(int|String|double|Char|boolean)\\b[ ]+(\\b\\w*\\b)[ ]*(=[ ]*((\\b\\w*\\b)|" +
+            "(\\\"[^\"]*\\\")))*[ ]*(,[ ]*(\\b\\w*\\b)" +
+            "[ ]*(=[ ]*((\\b\\w*\\b)|(\\\"[^\"]*\\\")))*)*[ ]*;[ ]*$");
+    public static final Pattern METHOD_DECLARATION_PATTERN =Pattern.compile("((void)[ ]+[a-zA-Z][a-zA-Z_0-9]*[ ]*(\\()\\w*(\\))(\\{)$)");
+    public static final Pattern END_OF_LINE_PATTERN =Pattern.compile("(\\{)|(})|(;)");
+    public static final Pattern COMMENT_PATTERN =Pattern.compile("[/]{2}");
 
 
 
 
     /*Constructor*/
 
-
     /**
-     *
-     * @param arg
+     * main method
+     * @param arg file's path
      */
     public Sjavac(String arg) throws IOException {
         try {
+            //TODO check if need to nullify the globalVariablesArray
             checkedFile = new File(arg);
             lineReader = new BufferedReader(new FileReader(checkedFile));
-            // call global var. factory?
-            // call method factory?
+            upperScopeFactory();
         } catch (IOException e){
             //do something
         }
     }
 
-
     /*Methods*/
 
-    void globalVariableFactory() throws  IOException{
-        Pattern globalPattern = Pattern.compile("(^ *(}))|(\\{)|(^ *\"int|String|double|char|boolean) +(\\w+\")");
-        Pattern methodsPattern =Pattern.compile("((void)[ ]+[a-zA-Z][a-zA-Z_0-9]*[ ]*(\\()\\w*(\\))(\\{)$)");
-        ArrayList<String> methodsLinesArray = new ArrayList<>();
+    //TODO check for method calls outside of a scope
+
+    void upperScopeFactory() throws IOException{
+        ArrayList<String> methodLinesArray = new ArrayList<>();
         fileParser();
         for (String line : linesArray){
-            Matcher globalMatcher = globalPattern.matcher(line), methodsMatcher = methodsPattern.matcher(line);
-            if (globalMatcher.find()){
-                if (methodsMatcher.matches()){
-                    methodsLinesArray.add(line);
-                }
-                if (openingCurlyBracketCounter==closingCurlyBracketCounter){}
-                if (globalMatcher.group(1)!=null){
+            Matcher closingMatcher = CLOSING_BRACKET_PATTERN.matcher(line),
+                    openingMatcher = OPENING_BRACKET_PATTERN.matcher(line),
+                    globalVariableMatcher = VARIABLE_DECLARATION_PATTERN.matcher(line),
+                    commentMatcher = COMMENT_PATTERN.matcher(line),
+                    endMatcher = END_OF_LINE_PATTERN.matcher(line),
+                    methodsMatcher = METHOD_DECLARATION_PATTERN.matcher(line);
+            if (!endMatcher.find()){
+                //todo raise exception!!
+            if (commentMatcher.find())
+                break;
+            } else {
+                if (METHOD_SCOPE_FLAG){
+                    methodLinesArray.add(line);
+                    //TODO checking twice for (METHOD_SCOPE_FLAG) might cause error in case of nested method
+                } else if (methodsMatcher.matches()) {
+                    methodLinesArray.add(line);
+                    METHOD_SCOPE_FLAG = true;
+                } if (openingMatcher.find()){
                     openingCurlyBracketCounter++;
-                } if (globalMatcher.group(2)!=null){
+                    //TODO validate that if methodsMatcher.matches(), still gets in here
+                } if (closingMatcher.find()){
                     closingCurlyBracketCounter++;
                 } if (openingCurlyBracketCounter==closingCurlyBracketCounter){
-                    if (!methodsLinesArray.isEmpty()){
-                        MethodScope newMethod;
-//                        newMethod = Scope.MethodScope(methodsLinesArray);
-//                        methodsArray.add(newMethod);
-//                        methodsLinesArray.clear();
-                    }
-                    if(globalMatcher.group(3)!=null){
-                        globalVariablesArray.add(Variable.variableFactory(line));
+                    if (!methodLinesArray.isEmpty()){
+                        methodsArray.add(new MethodScope(linesArray));
+                        methodLinesArray.clear();
+                        METHOD_SCOPE_FLAG=false;
+                    } if (globalVariableMatcher.find()){
+                        globalVariablesArray.addAll(Variable.variableInstasiation(line, true));
+                    } else if (!line.equals("")){
+                        //todo raise exception
                     }
                 }
             }
         }
     }
+
 
     void fileParser() throws IOException{
         int linesCounter=0;
@@ -98,25 +117,7 @@ public class Sjavac {
         }
     }
 
-//    public void methodsFactory() throws IOException{
-//        openingCurlyBracketCounter=0;
-//        closingCurlyBracketCounter = 0;
-//        Pattern methodsPattern =Pattern.compile("(^ *(})|(void)[ ]+[a-zA-Z][a-zA-Z_0-9]*[ ]*(\\()\\w*(\\))(\\{)$)|(\\{)");
-//        String methodString=null;
-//        for (String line = lineReader.readLine(); line!=null; line = lineReader.readLine()){
-//            Matcher methodsMatcher = methodsPattern.matcher(line);
-//            if (methodsMatcher.find()){
-//                if (methodsMatcher.group(2).matches("(void)[ ]+[a-zA-Z][a-zA-Z_0-9]*[ ]*(\\()\\w*(\\))" +
-//                        "(\\{)$")||(openingCurlyBracketCounter!=closingCurlyBracketCounter)){
-//                    openingCurlyBracketCounter++;
-//                    methodString = methodString.concat(methodString.substring(methodsMatcher.start(),
-//                            methodsMatcher.end()));
-//                } else if (methodsMatcher.)
-//            }
-//        }
-//    }
-
 }
 
-//TODO build arrays of global variables and methods
+
 //TODO make variable classes be able to differentiate between valid and invalid data assignment
