@@ -10,6 +10,10 @@ public abstract class Variable {
     public static final String DOUBLE = "double";
     public static final String CHAR = "char";
     public static final String BOOLEAN = "boolean";
+    public static final String FINAL = "final";
+    private static Pattern separatorPattern  = Pattern.compile("\\b\\w*\\b([ ]*=[ ]*((\\\"[^\"]*\\\")|([^ ,;]*)))*");
+    private static Pattern splitterPattern = Pattern.compile("(\\b\\w*\\b)[ ]*=[ ]*(([^ ]*)|(\\\"[^\"]*\\\"))");
+
 
     /* Data members */
 
@@ -46,10 +50,27 @@ public abstract class Variable {
             System.err.println("A bad declaration structure ");
 
         else{
-            // todo handle final type bugs
-            ArrayList<String> variablesToCreate = variableSeparator(declarationString);
-            boolean isFinal = true;
-            String typeInput = "int"; //to do
+            //prepare parameters
+            String typeInput;
+            List<String> variablesToCreate = variableSeparator(declarationString);
+            boolean isFinal;
+
+            //case it is final
+            if(variablesToCreate.get(0).equals(FINAL)) {
+                isFinal = true;
+                typeInput = variablesToCreate.get(1);
+                variablesToCreate = variablesToCreate.subList(2,variablesToCreate.size());
+            }
+            // cas it is not final
+            else{
+                isFinal = false;
+                typeInput = variablesToCreate.get(0);
+                System.out.println(variablesInstances.size());
+//                List<String> temp = variablesToCreate.subList(1,variablesToCreate.size());
+//                ArrayList<String> test = (ArrayList<String>)temp;
+                variablesToCreate = variablesToCreate.subList(1,variablesToCreate.size());
+            }
+
             Variable currVar = null;
 
             // run over variable signature and initialize it
@@ -57,7 +78,7 @@ public abstract class Variable {
 
                 // verify the variable name is valid
                 if (nameValidator(varSignature)) //todo exception for name validity
-                    System.out.println("exception should be printed");
+                    System.out.println("exception should be printed bad variable name");
 
                 // create the variable instance
                 switch (typeInput) {
@@ -91,16 +112,16 @@ public abstract class Variable {
      * @return true if valid, false elsewhere.
      */
     private static boolean nameValidator(String name) {
-        Pattern p = Pattern.compile("(\\b(_\\w+|[^\\d_ ]\\w+)\\b)([ ]*=[ ]*\\b\\w*\\b)*");
+        Pattern p = Pattern.compile("(\\b(_\\w+|[^\\d_ ]\\w*)\\b)[ ]*(=[ ]*[^ ]*)*");
         Matcher m = p.matcher(name);
 
-        if (m.find())
+        if(m.find())
             return true;
         return false;
     }
 
     /**
-     * the method verifies a declartion line is in the correct structure.
+     * the method verifies a declaration line is in the correct structure.
      * whether it has multiple variables or a single one.
      *
      * @param name
@@ -108,9 +129,9 @@ public abstract class Variable {
      */
     public static boolean declarationValidator(String name) {
         Pattern p = Pattern.compile(
-                "^[ ]*(final )*[ ]*\\b(int|String|double|Char|boolean)\\b[ ]+(\\b\\w*\\b)[ ]*(=[ ]*((\\b\\w*\\b)|" +
-                        "(\\\"[^\"]*\\\")))*[ ]*(,[ ]*(\\b\\w*\\b)" +
-                        "[ ]*(=[ ]*((\\b\\w*\\b)|(\\\"[^\"]*\\\")))*)*[ ]*;[ ]*$");
+                "^[ ]*(final )*[ ]*\\b(int|String|double|Char|boolean)\\b[ ]+(\\b\\w*\\b)[ ]*(=[ ]*" +
+                        "((\\b\\w*\\b)|(\\\"[^\\\"]*\\\")))*[ ]*(,[ ]*(\\b\\w*\\b)[ ]*" +
+                        "(=[ ]*(([^ \"]*)|(\\\"[^\\\"]*\\\")))*)*[ ]*;[ ]*$");
         Matcher m = p.matcher(name);
         if (m.find())
             return true;
@@ -119,41 +140,33 @@ public abstract class Variable {
 
 
 
-    //todo final and type problem
+
     /*
      *the method receives a valid declaration line and separate it into sub array list sub string.
      * first cell is reserved to the declaration type. all other nodes are filled with variables.
      * @param declaration
      */
-    private static ArrayList<String> variableSeparator(String declaration){
-        Pattern variablePattern = Pattern.compile("(\\b\\w+\\b([ ]*=[ ]*\\b\\w+\\b)*)");
-        Matcher match = variablePattern.matcher(declaration);
-        ArrayList<String> variableTable = new ArrayList<>();
+    public static ArrayList<String> variableSeparator(String declaration){
 
-        String type;
+        Matcher match = separatorPattern.matcher(declaration);
+        ArrayList<String> variableList = new ArrayList<>();
 
-        if (match.find()) {
-            type = declaration.substring(match.start(), match.end());
-            System.out.println(type);
-            variableTable.add(type);
-        }
         String currentVar;
+        //find all occurrences
         while(match.find()){
             currentVar = declaration.substring(match.start(), match.end());
-            variableTable.add(currentVar);
+            if(!currentVar.equals(""))
+                variableList.add(currentVar);
         }
-//
-//        for(String str : variableTable)
-//            System.out.println(str);
-        return variableTable;
+        return variableList;
     }
 
 
     public static String[] splitter(String variableWithAssign){
-        Pattern p = Pattern.compile("[ ]*(\\b\\w*\\b)[ ]*=[ ]*(.*)$");
-        Matcher m = p.matcher(variableWithAssign);
+//        Pattern p = Pattern.compile("(\\b\\w*\\b)[ ]*=[ ]*((\\b\\w*\\b)|(\\\"[^\"]*\\\"))");
+        Matcher m = splitterPattern.matcher(variableWithAssign);
 
-        String[] splitted;
+        String[] splitted = null;
         splitted = new String[2];
 
         if(m.find()){
@@ -161,8 +174,6 @@ public abstract class Variable {
             splitted[1] = m.group(2);
         }
         return splitted;
-
     }
-
 }
 
