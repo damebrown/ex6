@@ -32,40 +32,57 @@ public abstract class Variable {
     }
 
     /**
-     * the method receives variable type, declaration string, isGlobal and isFinal flags and
-     * return the matching variable
-     * @param typeInput the given type
-     * @param variableString the variable string
-     * @param isGlobal global flag
-     * @param isFinal final flag
-     * @return the required variable instance
+     *
+     * @param declarationString
+     * @param isGlobal
+     * @return
      */
-    public static Variable variableInstasiation(String typeInput, String variableString, boolean isGlobal,
-                                                boolean isFinal) {
-        Variable variable = null;
+    public static ArrayList<Variable> variableInstasiation(String declarationString,boolean isGlobal) {
 
-//        for (String type: typeStrings){
-        if (nameValidator(variableString)) //todo exception for name validity
-            System.out.println("exception should be printed");
-            switch (typeInput) {
-                case STRING:
-                    variable = new StringVariable(variableString, isGlobal, isFinal);
-                    break;
-                case INT:
-                    variable = new IntVariable(variableString, isGlobal, isFinal);
-                    break;
-                case DOUBLE:
-                    variable = new DoubleVariable(variableString, isGlobal, isFinal);
-                    break;
-                case CHAR:
-                    variable = new CharVariable(variableString, isGlobal, isFinal);
-                    break;
-                case BOOLEAN:
-                    variable = new IntVariable(variableString, isGlobal, isFinal);
-                    break;
+        ArrayList<Variable> variablesInstances = new ArrayList<>();
+
+        //verify declaration structure
+        if(!declarationValidator(declarationString))
+            System.err.println("A bad declaration structure ");
+
+        else{
+            // todo handle final type bugs
+            ArrayList<String> variablesToCreate = variableSeparator(declarationString);
+            boolean isFinal = true;
+            String typeInput = "int"; //to do
+            Variable currVar = null;
+
+            // run over variable signature and initialize it
+            for(String varSignature : variablesToCreate){
+
+                // verify the variable name is valid
+                if (nameValidator(varSignature)) //todo exception for name validity
+                    System.out.println("exception should be printed");
+
+                // create the variable instance
+                switch (typeInput) {
+                    case STRING:
+                        currVar = new StringVariable(varSignature, isGlobal, isFinal);
+                        break;
+                    case INT:
+                        currVar = new IntVariable(varSignature, isGlobal, isFinal);
+                        break;
+                    case DOUBLE:
+                        currVar = new DoubleVariable(varSignature, isGlobal, isFinal);
+                        break;
+                    case CHAR:
+                        currVar = new CharVariable(varSignature, isGlobal, isFinal);
+                        break;
+                    case BOOLEAN:
+                        currVar = new IntVariable(varSignature, isGlobal, isFinal);
+                        break;
+                }
+                variablesInstances.add(currVar);
             }
-        return variable;
+        }
+        return variablesInstances;
     }
+
 
     /*
      *  the method receives variable name and verify it is valid according to
@@ -89,13 +106,48 @@ public abstract class Variable {
      * @param name
      * @return
      */
-    private static boolean declarationValidator(String name) {
-        Pattern p = Pattern.compile("^[ ]*\\b(int|boolean|String|char|double)\\b[ ]*(\\b\\w*\\b[ ]*([ ]*=[ ]*\\b\\w*\\b)?)[ ]*([ ]*,[ ]*\\b\\w*\\b[ ]*(=[ ]*\\b\\w*\\b)?)*[ ]*;$");
+    public static boolean declarationValidator(String name) {
+        Pattern p = Pattern.compile(
+                "^[ ]*(final )*[ ]*\\b(int|String|double|Char|boolean)\\b[ ]+(\\b\\w*\\b)[ ]*(=[ ]*((\\b\\w*\\b)|" +
+                        "(\\\"[^\"]*\\\")))*[ ]*(,[ ]*(\\b\\w*\\b)" +
+                        "[ ]*(=[ ]*((\\b\\w*\\b)|(\\\"[^\"]*\\\")))*)*[ ]*;[ ]*$");
         Matcher m = p.matcher(name);
         if (m.find())
             return true;
         return false;
     }
+
+
+
+    //todo final and type problem
+    /*
+     *the method receives a valid declaration line and separate it into sub array list sub string.
+     * first cell is reserved to the declaration type. all other nodes are filled with variables.
+     * @param declaration
+     */
+    private static ArrayList<String> variableSeparator(String declaration){
+        Pattern variablePattern = Pattern.compile("(\\b\\w+\\b([ ]*=[ ]*\\b\\w+\\b)*)");
+        Matcher match = variablePattern.matcher(declaration);
+        ArrayList<String> variableTable = new ArrayList<>();
+
+        String type;
+
+        if (match.find()) {
+            type = declaration.substring(match.start(), match.end());
+            System.out.println(type);
+            variableTable.add(type);
+        }
+        String currentVar;
+        while(match.find()){
+            currentVar = declaration.substring(match.start(), match.end());
+            variableTable.add(currentVar);
+        }
+//
+//        for(String str : variableTable)
+//            System.out.println(str);
+        return variableTable;
+    }
+
 
     public static String[] splitter(String variableWithAssign){
         Pattern p = Pattern.compile("[ ]*(\\b\\w*\\b)[ ]*=[ ]*(.*)$");
