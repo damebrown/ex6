@@ -1,0 +1,21 @@
+
+    DFS(searchedNode){
+        Node{} visitedNodesSet;
+        node = getUnvisitedNode();
+        while (node!=searchedNode) and (visitedNodesSet.size()<Tree.size()){
+            visitedNodesSet.add(node);
+            foreach Child of node{
+                node = Child;
+                visitedNodesSet.add(node);
+                while (node.hasChildren()){
+                     visitedNodesSet.add(node);
+                    (node.getUnvisitedChild) or (node= node.getRandomChild());
+                }
+                node = getUnvisitedNode();
+                visitedNodesSet.add(node);
+                break;
+            }
+        } if (!visitedNodesSet.size()<Tree.size()) or (!node){
+            node = null;
+        } return node;
+    }

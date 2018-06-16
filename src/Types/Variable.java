@@ -21,7 +21,7 @@ public abstract class Variable {
 //    private static String[] typeStrings={STRING, INT, DOUBLE, CHAR, BOOLEAN};
 
 
-    public Variable() {}
+    public Variable(){}
 
     /**
      * a super constructor
@@ -32,10 +32,11 @@ public abstract class Variable {
     }
 
     /**
-     *
-     * @param declarationString
-     * @param isGlobal
-     * @return
+     * this method gets a line in which there's a decleration of a a variable, and calls the relevant
+     * consturctors upon it
+     * @param declarationString the line of declaration
+     * @param isGlobal boolean, true if a global variable
+     * @return arraylist of the instanced variables
      */
     public static ArrayList<Variable> variableInstasiation(String declarationString,boolean isGlobal) {
 
