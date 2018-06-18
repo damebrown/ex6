@@ -21,7 +21,7 @@ class StringVariable extends Variable {
             if (isValid(toAssign[1])) {
                 this.value = toAssign[1];
             } else
-                System.out.println("not good, do exception");
+                System.out.println("not good, not a valid string value");
         } else {
             this.name = variableString;
         }

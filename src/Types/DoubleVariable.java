@@ -15,7 +15,7 @@ class DoubleVariable extends Variable {
                 this.value = toAssign[1];
             }
             else
-                System.out.println("not good, do exception");
+                System.out.println("not good, not a valid double value");
         }
         else{
             this.name = variableString;

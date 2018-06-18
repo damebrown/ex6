@@ -12,7 +12,7 @@ public abstract class Variable {
     public static final String BOOLEAN = "boolean";
     public static final String FINAL = "final";
     private static Pattern separatorPattern  = Pattern.compile("\\b\\w*\\b([ ]*=[ ]*((\\\"[^\"]*\\\")|([^ ,;]*)))*");
-    private static Pattern splitterPattern = Pattern.compile("(\\b\\w*\\b)[ ]*=[ ]*(([^ ]*)|(\\\"[^\"]*\\\"))");
+    private static Pattern splitterPattern = Pattern.compile("(\\b\\w*\\b)[ ]*=[ ]*((\\\"[^\"]*\\\")|([^ ]*))");
 
 
     /* Data members */
@@ -66,7 +66,7 @@ public abstract class Variable {
             else{
                 isFinal = false;
                 typeInput = variablesToCreate.get(0);
-                System.out.println(variablesInstances.size());
+//                System.out.println(variablesInstances.size());
 //                List<String> temp = variablesToCreate.subList(1,variablesToCreate.size());
 //                ArrayList<String> test = (ArrayList<String>)temp;
                 variablesToCreate = variablesToCreate.subList(1,variablesToCreate.size());
@@ -78,7 +78,7 @@ public abstract class Variable {
             for(String varSignature : variablesToCreate){
 
                 // verify the variable name is valid
-                if (nameValidator(varSignature)) //todo exception for name validity
+                if (!nameValidator(varSignature)) //todo exception for name validity
                     System.out.println("exception should be printed bad variable name");
 
                 // create the variable instance
@@ -96,7 +96,7 @@ public abstract class Variable {
                         currVar = new CharVariable(varSignature, isGlobal, isFinal);
                         break;
                     case BOOLEAN:
-                        currVar = new IntVariable(varSignature, isGlobal, isFinal);
+                        currVar = new BooleanVariable(varSignature, isGlobal, isFinal);
                         break;
                 }
                 variablesInstances.add(currVar);
@@ -130,8 +130,8 @@ public abstract class Variable {
      */
     public static boolean declarationValidator(String name) {
         Pattern p = Pattern.compile(
-                "^[ ]*(final )*[ ]*\\b(int|String|double|Char|boolean)\\b[ ]+(\\b\\w*\\b)[ ]*(=[ ]*" +
-                        "((\\b\\w*\\b)|(\\\"[^\\\"]*\\\")))*[ ]*(,[ ]*(\\b\\w*\\b)[ ]*" +
+                "^[ ]*(final\\s*)?\\b(int|String|double|char|boolean)\\b[ ]+(\\b\\w*\\b)[ ]*(=[ ]*" +
+                        "(([^ \\\"]*)|(\\\"[^\\\"]*\\\")))*[ ]*(,[ ]*(\\b\\w*\\b)[ ]*" +
                         "(=[ ]*(([^ \"]*)|(\\\"[^\\\"]*\\\")))*)*[ ]*;[ ]*$");
         Matcher m = p.matcher(name);
         if (m.find())

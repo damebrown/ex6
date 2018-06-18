@@ -15,7 +15,7 @@ class IntVariable extends Variable{
                 this.value = toAssign[1];
             }
             else
-                System.out.println("not good, do exception");
+                System.out.println("not good, not a valid int value");
         }
         else{
             this.name = variableString;
