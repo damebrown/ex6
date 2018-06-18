@@ -4,6 +4,9 @@ import java.util.*;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+/**
+ * the class represent a general variable object
+ */
 public abstract class Variable {
     public static final String STRING = "String";
     public static final String INT = "int";
@@ -19,7 +22,7 @@ public abstract class Variable {
 
     protected boolean isFinal = false;
     protected boolean isGlobal;
-    protected java.lang.String Type; //todo why?
+//    protected java.lang.String Type; //todo why?
     protected java.lang.String name;
     protected java.lang.String value;
 //    private static String[] typeStrings={STRING, INT, DOUBLE, CHAR, BOOLEAN};
@@ -62,13 +65,10 @@ public abstract class Variable {
                 typeInput = variablesToCreate.get(1);
                 variablesToCreate = variablesToCreate.subList(2,variablesToCreate.size());
             }
-            // cas it is not final
+            // case it is not final
             else{
                 isFinal = false;
                 typeInput = variablesToCreate.get(0);
-//                System.out.println(variablesInstances.size());
-//                List<String> temp = variablesToCreate.subList(1,variablesToCreate.size());
-//                ArrayList<String> test = (ArrayList<String>)temp;
                 variablesToCreate = variablesToCreate.subList(1,variablesToCreate.size());
             }
 
