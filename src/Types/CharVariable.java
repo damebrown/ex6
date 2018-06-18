@@ -21,7 +21,7 @@ public class CharVariable extends Variable {
                 this.value = toAssign[1];
             }
             else
-                System.out.println("not good, do exception");
+                System.out.println("not good, not  valid char value ");
         }
         else{
             this.name = variableString;
