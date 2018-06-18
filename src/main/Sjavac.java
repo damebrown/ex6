@@ -34,7 +34,7 @@ public class Sjavac {
     public ArrayList<MethodScope> methodsArray = new ArrayList<>();
 
     public static final Pattern OPENING_BRACKET_PATTERN =Pattern.compile("(\\{)");
-    public static final Pattern CLOSING_BRACKET_PATTERN =Pattern.compile("(^ *(}))");
+    public static final Pattern CLOSING_BRACKET_PATTERN =Pattern.compile("(^ *(}))\\s*$");
     public static final Pattern VARIABLE_DECLARATION_PATTERN =
             Pattern.compile("^[ ]*(final )*[ ]*\\b(int|String|double|Char|boolean)\\b[ ]+(\\b\\w*\\b)[ ]*(=[ ]*((\\b\\w*\\b)|" +
             "(\\\"[^\"]*\\\")))*[ ]*(,[ ]*(\\b\\w*\\b)" +
@@ -42,6 +42,7 @@ public class Sjavac {
     public static final Pattern METHOD_DECLARATION_PATTERN =Pattern.compile("((void)[ ]+[a-zA-Z][a-zA-Z_0-9]*[ ]*(\\()\\w*(\\))(\\{)$)");
     public static final Pattern END_OF_LINE_PATTERN =Pattern.compile("(\\{)|(})|(;)");
     public static final Pattern COMMENT_PATTERN =Pattern.compile("[/]{2}");
+    public static final Pattern EMPTY_LINE_PATTERN = Pattern.compile("\\s");
 
 
 
@@ -76,11 +77,16 @@ public class Sjavac {
                     globalVariableMatcher = VARIABLE_DECLARATION_PATTERN.matcher(line),
                     commentMatcher = COMMENT_PATTERN.matcher(line),
                     endMatcher = END_OF_LINE_PATTERN.matcher(line),
+                    emptyLineMatcher = EMPTY_LINE_PATTERN.matcher(line),
                     methodsMatcher = METHOD_DECLARATION_PATTERN.matcher(line);
             if (!endMatcher.find()){
                 //todo raise exception!!
             if (commentMatcher.find())
-                break;
+                if (!line.startsWith("//")){
+                    //TODO Raise exception
+                } else {
+                    break;
+                }
             } else {
                 if (METHOD_SCOPE_FLAG){
                     methodLinesArray.add(line);
@@ -95,16 +101,18 @@ public class Sjavac {
                     closingCurlyBracketCounter++;
                 } if (openingCurlyBracketCounter==closingCurlyBracketCounter){
                     if (!methodLinesArray.isEmpty()){
-                        methodsArray.add(new MethodScope(linesArray));
+                        methodsArray.add(new MethodScope(methodLinesArray));
                         methodLinesArray.clear();
                         METHOD_SCOPE_FLAG=false;
                     } if (globalVariableMatcher.find()){
                         globalVariablesArray.addAll(Variable.variableInstasiation(line, true));
-                    } else if (!line.equals("")){
+                    } else if (emptyLineMatcher.find()){
                         //todo raise exception
                     }
                 }
             }
+        } if (closingCurlyBracketCounter!=openingCurlyBracketCounter){
+            //TODO raise exception
         }
     }
 
