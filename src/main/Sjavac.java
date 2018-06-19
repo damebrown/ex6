@@ -53,14 +53,17 @@ public class Sjavac {
      * main method
      * @param arg file's path
      */
-    public Sjavac(String arg) throws IOException {
+    public Sjavac(String arg) throws IOException, IllegalCodeException {
         try {
             //TODO check if need to nullify the globalVariablesArray
             checkedFile = new File(arg);
             lineReader = new BufferedReader(new FileReader(checkedFile));
             upperScopeFactory();
-        } catch (IOException e){
-            //do something
+            methodInitializer();
+        } catch (IOException e) {
+            throw new IOException();
+        } catch (IllegalCodeException e){
+            throw new IllegalCodeException();
         }
     }
 
@@ -68,7 +71,7 @@ public class Sjavac {
 
     //TODO check for method calls outside of a scope
 
-    void upperScopeFactory() throws IOException{
+    void upperScopeFactory() throws IOException, IllegalCodeException{
         ArrayList<String> methodLinesArray = new ArrayList<>();
         fileParser();
         for (String line : linesArray){
@@ -81,26 +84,26 @@ public class Sjavac {
                     methodsMatcher = METHOD_DECLARATION_PATTERN.matcher(line);
             if (commentMatcher.find()) {
                 if (!line.startsWith("//")) {
-                    //TODO Raise exception
+                    throw new IllegalCodeException();
                 } else {
                     break;
                 }
-            }  else {
+            } else {
                 } if (!METHOD_SCOPE_FLAG){
                     if (methodsMatcher.matches()) {
                         METHOD_SCOPE_FLAG = true;
-                    } else if (!emptyLineMatcher.find()){
-                        //todo raise exception
+                    } else if (globalVariableMatcher.find()){
+                        globalVariablesArray.addAll(Variable.variableInstasiation(line, true));
+                    } else if (!emptyLineMatcher.matches()){
+                        throw new IllegalCodeException();
                     }
                 } else {
                     if (!endMatcher.find()){
-                        //todo raise exception!!
+                        throw new IllegalCodeException();
                     }
                     methodLinesArray.add(line);
-                    //TODO checking twice for (METHOD_SCOPE_FLAG) might cause error in case of nested method
                 } if (openingMatcher.find()){
                     openingBracketCounter++;
-                    //TODO validate that if methodsMatcher.matches(), still gets in here
                 } if (closingMatcher.find()){
                     closingBracketCounter++;
                 } if (openingBracketCounter == closingBracketCounter){
@@ -108,15 +111,19 @@ public class Sjavac {
                         methodsArray.add(new MethodScope(methodLinesArray));
                         methodLinesArray.clear();
                         METHOD_SCOPE_FLAG=false;
-                    } if (globalVariableMatcher.find()){
-                        globalVariablesArray.addAll(Variable.variableInstasiation(line, true));
                     }
                 }
         } if (closingBracketCounter != openingBracketCounter){
-            //TODO raise exception
+            throw new IllegalCodeException();
         }
     }
 
+
+    private void methodInitializer(){
+        for (MethodScope method: methodsArray){
+            method.methodValidityManager();
+        }
+    }
 
     void fileParser() throws IOException{
         int linesCounter=0;
