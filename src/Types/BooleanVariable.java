@@ -5,7 +5,9 @@ import java.util.regex.Pattern;
 
 class BooleanVariable extends Variable {
 
-    public BooleanVariable(String variableString,boolean isGlobal,boolean isFinal) {
+    private final static Pattern VALIDITY_PATTERN = Pattern.compile("((-?\\d+(.\\d*)?+)|true|false)");  //todo is 093 valid?
+
+    public BooleanVariable(String variableString,boolean isGlobal,boolean isFinal) throws IllegalTypeException {
 
         super(isGlobal,isFinal);
         if(variableString.contains("=")){ //todo verify empty string wont get ere
@@ -15,19 +17,22 @@ class BooleanVariable extends Variable {
                 this.value = toAssign[1];
             }
             else
-                System.out.println("not good, not a boolean value");
+                throw new IllegalTypeException();
         }
         else{
             this.name = variableString;
         }
     }
+    @Override
+    public  boolean isValid(String value){
+        Matcher booleanMatcher = VALIDITY_PATTERN.matcher(value);
 
-    public static boolean isValid(String value){
-        Pattern p = Pattern.compile("((-?\\d+(.\\d*)?+)|true|false)");  //todo is 093 valid?
-        Matcher m = p.matcher(value);
+        return booleanMatcher.matches();
+    }
 
-        if(m.matches())
-            return true;
-        return false;
+    @Override
+    public void setValue(String value) {
+        if(isValid(value))
+            this.value =value;
     }
 }

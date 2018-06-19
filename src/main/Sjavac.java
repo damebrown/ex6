@@ -1,5 +1,6 @@
 package main;
 
+import Scope.IllegalScopeException;
 import Scope.MethodScope;
 import Types.Variable;
 
@@ -31,7 +32,7 @@ public class Sjavac {
 
     public ArrayList<String> linesArray = new ArrayList<>();
 
-    public ArrayList<MethodScope> methodsArray = new ArrayList<>();
+    public static ArrayList<MethodScope> methodsArray = new ArrayList<>();
 
     public static final Pattern OPENING_BRACKET_PATTERN =Pattern.compile("(\\{)");
     public static final Pattern CLOSING_BRACKET_PATTERN =Pattern.compile("(^ *(}))\\s*$");
@@ -119,9 +120,13 @@ public class Sjavac {
     }
 
 
-    private void methodInitializer(){
-        for (MethodScope method: methodsArray){
-            method.methodValidityManager();
+    private void methodInitializer() throws IllegalCodeException {
+        try{
+            for (MethodScope method: methodsArray){
+                method.methodValidityManager();
+            }
+        } catch (IllegalCodeException e){
+            throw new IllegalCodeException();
         }
     }
 

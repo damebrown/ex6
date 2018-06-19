@@ -8,24 +8,27 @@ import java.util.regex.Pattern;
  * the class represent a general variable object
  */
 public abstract class Variable {
-    public static final String STRING = "String";
-    public static final String INT = "int";
-    public static final String DOUBLE = "double";
-    public static final String CHAR = "char";
-    public static final String BOOLEAN = "boolean";
-    public static final String FINAL = "final";
-    private static Pattern separatorPattern  = Pattern.compile("\\b\\w*\\b([ ]*=[ ]*((\\\"[^\"]*\\\")|([^ ,;]*)))*");
-    private static Pattern splitterPattern = Pattern.compile("(\\b\\w*\\b)[ ]*=[ ]*((\\\"[^\"]*\\\")|([^ ]*))");
+    private static final String STRING = "String";
+    private static final String INT = "int";
+    private static final String DOUBLE = "double";
+    private static final String CHAR = "char";
+    private static final String BOOLEAN = "boolean";
+    private static final String FINAL = "final";
+    private static final Pattern SEPARATOR_PATTERN = Pattern.compile("\\b\\w*\\b([ ]*=[ ]*((\\\"[^\"]*\\\")|([^ ,;]*)))*");
+    private static final Pattern SPLITTER_PATTERN = Pattern.compile("(\\b\\w*\\b)[ ]*=[ ]*((\\\"[^\"]*\\\")|([^ ]*))");
+    private static final Pattern NAME_PATTERN = Pattern.compile("(\\b(_\\w+|[^\\d_ ]\\w*)\\b)[ ]*(=[ ]*[^ ]*)*");
+    private static final Pattern DECLARATION_PATTERN = Pattern.compile(
+            "^[ ]*(final\\s*)?\\b(int|String|double|char|boolean)\\b[ ]+(\\b\\w*\\b)[ ]*(=[ ]*" +
+                    "(([^ \\\"]*)|(\\\"[^\\\"]*\\\")))*[ ]*(,[ ]*(\\b\\w*\\b)[ ]*" +
+                    "(=[ ]*(([^ \"]*)|(\\\"[^\\\"]*\\\")))*)*[ ]*;[ ]*$");
 
 
     /* Data members */
 
     protected boolean isFinal = false;
     protected boolean isGlobal;
-//    protected java.lang.String Type; //todo why?
     protected java.lang.String name;
     protected java.lang.String value;
-//    private static String[] typeStrings={STRING, INT, DOUBLE, CHAR, BOOLEAN};
 
 
     public Variable(){}
@@ -45,13 +48,14 @@ public abstract class Variable {
      * @param isGlobal boolean, true if a global variable
      * @return arraylist of the instanced variables
      */
-    public static ArrayList<Variable> variableInstasiation(String declarationString,boolean isGlobal) {
+    public static ArrayList<Variable> variableInstasiation(String declarationString,boolean isGlobal) throws
+            IllegalTypeException {
 
         ArrayList<Variable> variablesInstances = new ArrayList<>();
 
         //verify declaration structure
         if(!declarationValidator(declarationString))
-            System.err.println("A bad declaration structure ");
+            throw new IllegalTypeException();
 
         else{
             //prepare parameters
@@ -78,8 +82,9 @@ public abstract class Variable {
             for(String varSignature : variablesToCreate){
 
                 // verify the variable name is valid
-                if (!nameValidator(varSignature)) //todo exception for name validity
-                    System.out.println("exception should be printed bad variable name");
+                if (!nameValidator(varSignature)) {
+                    throw new IllegalTypeException();
+                }
 
                 // create the variable instance
                 switch (typeInput) {
@@ -105,6 +110,16 @@ public abstract class Variable {
         return variablesInstances;
     }
 
+    /**
+     * the method verify if a given value is correct, based on the variable type demands.
+     * @param value the value string to check
+     * @return true if valid
+     */
+    public abstract boolean isValid(String value);
+
+
+
+    public abstract void setValue(String value);
 
     /*
      *  the method receives variable name and verify it is valid according to
@@ -113,12 +128,9 @@ public abstract class Variable {
      * @return true if valid, false elsewhere.
      */
     private static boolean nameValidator(String name) {
-        Pattern p = Pattern.compile("(\\b(_\\w+|[^\\d_ ]\\w*)\\b)[ ]*(=[ ]*[^ ]*)*");
-        Matcher m = p.matcher(name);
+        Matcher m = NAME_PATTERN.matcher(name);
 
-        if(m.find())
-            return true;
-        return false;
+        return m.find();
     }
 
     /**
@@ -129,14 +141,8 @@ public abstract class Variable {
      * @return
      */
     public static boolean declarationValidator(String name) {
-        Pattern p = Pattern.compile(
-                "^[ ]*(final\\s*)?\\b(int|String|double|char|boolean)\\b[ ]+(\\b\\w*\\b)[ ]*(=[ ]*" +
-                        "(([^ \\\"]*)|(\\\"[^\\\"]*\\\")))*[ ]*(,[ ]*(\\b\\w*\\b)[ ]*" +
-                        "(=[ ]*(([^ \"]*)|(\\\"[^\\\"]*\\\")))*)*[ ]*;[ ]*$");
-        Matcher m = p.matcher(name);
-        if (m.find())
-            return true;
-        return false;
+        Matcher m = DECLARATION_PATTERN.matcher(name);
+        return m.find();
     }
 
 
@@ -147,9 +153,9 @@ public abstract class Variable {
      * first cell is reserved to the declaration type. all other nodes are filled with variables.
      * @param declaration
      */
-    public static ArrayList<String> variableSeparator(String declaration){
+    private static ArrayList<String> variableSeparator(String declaration){
 
-        Matcher match = separatorPattern.matcher(declaration);
+        Matcher match = SEPARATOR_PATTERN.matcher(declaration);
         ArrayList<String> variableList = new ArrayList<>();
 
         String currentVar;
@@ -162,10 +168,14 @@ public abstract class Variable {
         return variableList;
     }
 
-
-    public static String[] splitter(String variableWithAssign){
-//        Pattern p = Pattern.compile("(\\b\\w*\\b)[ ]*=[ ]*((\\b\\w*\\b)|(\\\"[^\"]*\\\"))");
-        Matcher m = splitterPattern.matcher(variableWithAssign);
+    /**
+     *  The method is in charge of splitting variable assignment line into variable name string
+     *  and value string
+     * @param variableWithAssign the complete line to split
+     * @return
+     */
+    protected static String[] splitter(String variableWithAssign){
+        Matcher m = SPLITTER_PATTERN.matcher(variableWithAssign);
 
         String[] splitted = null;
         splitted = new String[2];

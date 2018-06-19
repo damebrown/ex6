@@ -5,13 +5,15 @@ import java.util.regex.Pattern;
 
 public class CharVariable extends Variable {
 
+    private final static Pattern VALIDITY_PATTERN = Pattern.compile("[\\\"\\\'].[\\\"\\\']"); //todo should include "" ?
+
     /**
      *
      * @param variableString
      * @param isGlobal
      * @param isFinal
      */
-    public CharVariable(String variableString,boolean isGlobal,boolean isFinal) {
+    public CharVariable(String variableString,boolean isGlobal,boolean isFinal) throws IllegalTypeException {
 
         super(isGlobal,isFinal);
         if(variableString.contains("=")){
@@ -21,19 +23,23 @@ public class CharVariable extends Variable {
                 this.value = toAssign[1];
             }
             else
-                System.out.println("not good, not  valid char value ");
+                throw new IllegalTypeException();
         }
         else{
             this.name = variableString;
         }
     }
+    @Override
+    public  boolean isValid(String value){
+        Matcher charMatcher = VALIDITY_PATTERN.matcher(value);
 
-    public static boolean isValid(String value){
-        Pattern p = Pattern.compile("[\\\"\\\'].[\\\"\\\']"); //todo should include "" ?
-        Matcher m = p.matcher(value);
-
-        if(m.find())
+        if(charMatcher.find())
             return true;
         return false;
+    }
+    @Override
+    public void setValue(String value) {
+        if(isValid(value))
+            this.value =value;
     }
 }

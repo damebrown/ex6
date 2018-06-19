@@ -5,7 +5,9 @@ import java.util.regex.Pattern;
 
 class DoubleVariable extends Variable {
 
-    public DoubleVariable(String variableString,boolean isGlobal,boolean isFinal) {
+    private final static Pattern VALIDITY_PATTERN = Pattern.compile("(-?\\d+)(.\\d*)?+");  //todo is 093 valid?
+
+    public DoubleVariable(String variableString,boolean isGlobal,boolean isFinal) throws IllegalTypeException {
 
         super(isGlobal,isFinal);
         if(variableString.contains("=")){
@@ -15,19 +17,21 @@ class DoubleVariable extends Variable {
                 this.value = toAssign[1];
             }
             else
-                System.out.println("not good, not a valid double value");
+                throw new IllegalTypeException();
         }
         else{
             this.name = variableString;
         }
     }
+    @Override
+    public  boolean isValid(String value){
+        Matcher doubleMatcher = VALIDITY_PATTERN.matcher(value);
 
-    public static boolean isValid(String value){
-        Pattern p = Pattern.compile("(-?\\d+)(.\\d*)?+");  //todo is 093 valid?
-        Matcher m = p.matcher(value);
-
-        if(m.matches())
-            return true;
-        return false;
+        return doubleMatcher.matches();
+    }
+    @Override
+    public void setValue(String value) {
+        if(isValid(value))
+            this.value =value;
     }
 }

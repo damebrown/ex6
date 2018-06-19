@@ -1,25 +1,32 @@
 package Scope;
 
+import Types.IllegalTypeException;
+
 import java.util.ArrayList;
 
 public class ConditionScope extends Scope{
 
 
     ConditionScope(ArrayList<String> arrayOfLines, Scope fatherScopeInput){
-        fatherScope = fatherScopeInput;
         scopeLinesArray = arrayOfLines;
-        if (conditionValidityCheck()){
+        fatherScope = fatherScopeInput;
+    }
+
+    public void conditionValidityManager() throws IllegalScopeException, IllegalTypeException {
+        if (conditionValidityChecker()){
             appendFatherScopeVariables();
-            scopeVariableFactory();
             subScopesFactory(this);
         } else {
-            //TODO raise exception
-        }
-
+            throw new IllegalScopeException();        }
     }
 
 
-    private boolean conditionValidityCheck(){
+    private void appendFatherScopeVariables(){
+        upperScopeVariables.addAll(fatherScope.localVariables);
+    }
+
+
+    private boolean conditionValidityChecker(){
         //TODO check that conditions are valid, used parameters are valid,
         return true;
     }

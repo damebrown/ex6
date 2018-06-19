@@ -1,21 +1,18 @@
 
-    DFS(searchedNode){
-        Node{} visitedNodesSet;
-        node = getUnvisitedNode();
-        while (node!=searchedNode) and (visitedNodesSet.size()<Tree.size()){
-            visitedNodesSet.add(node);
-            foreach Child of node{
-                node = Child;
-                visitedNodesSet.add(node);
-                while (node.hasChildren()){
-                     visitedNodesSet.add(node);
-                    (node.getUnvisitedChild) or (node= node.getRandomChild());
+    SpanningTreeFinder(node){
+        Node{} connectedNodesSet;
+        Tree = new Tree();
+        Q = new Queue();
+        Q.enqueue(node);
+        while (!Q.isEmpty()){
+            node = Q.dequeue;
+            connectedNodesSet.add(node);
+            foreach child of node{
+                if (!(child & node) is in connectedNodesSet){
+                    Tree.createEdge(node, child);
+                    connectedNodesSet.add(child);
+                    Q.enqueue(child);
                 }
-                node = getUnvisitedNode();
-                visitedNodesSet.add(node);
-                break;
             }
-        } if (!visitedNodesSet.size()<Tree.size()) or (!node){
-            node = null;
-        } return node;
+        } return Tree;
     }
