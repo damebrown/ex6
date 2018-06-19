@@ -23,7 +23,7 @@ public class Sjavac {
 
     private static BufferedReader lineReader;
 
-    private static int openingCurlyBracketCounter=0, closingCurlyBracketCounter=0;
+    private static int openingBracketCounter =0, closingBracketCounter =0;
 
     private static boolean METHOD_SCOPE_FLAG=false;
 
@@ -79,39 +79,40 @@ public class Sjavac {
                     endMatcher = END_OF_LINE_PATTERN.matcher(line),
                     emptyLineMatcher = EMPTY_LINE_PATTERN.matcher(line),
                     methodsMatcher = METHOD_DECLARATION_PATTERN.matcher(line);
-            if (!endMatcher.find()){
-                //todo raise exception!!
-            if (commentMatcher.find())
-                if (!line.startsWith("//")){
+            if (commentMatcher.find()) {
+                if (!line.startsWith("//")) {
                     //TODO Raise exception
                 } else {
                     break;
                 }
-            } else {
-                if (METHOD_SCOPE_FLAG){
+            }  else {
+                } if (!METHOD_SCOPE_FLAG){
+                    if (methodsMatcher.matches()) {
+                        METHOD_SCOPE_FLAG = true;
+                    } else if (!emptyLineMatcher.find()){
+                        //todo raise exception
+                    }
+                } else {
+                    if (!endMatcher.find()){
+                        //todo raise exception!!
+                    }
                     methodLinesArray.add(line);
                     //TODO checking twice for (METHOD_SCOPE_FLAG) might cause error in case of nested method
-                } else if (methodsMatcher.matches()) {
-                    methodLinesArray.add(line);
-                    METHOD_SCOPE_FLAG = true;
                 } if (openingMatcher.find()){
-                    openingCurlyBracketCounter++;
+                    openingBracketCounter++;
                     //TODO validate that if methodsMatcher.matches(), still gets in here
                 } if (closingMatcher.find()){
-                    closingCurlyBracketCounter++;
-                } if (openingCurlyBracketCounter==closingCurlyBracketCounter){
+                    closingBracketCounter++;
+                } if (openingBracketCounter == closingBracketCounter){
                     if (!methodLinesArray.isEmpty()){
                         methodsArray.add(new MethodScope(methodLinesArray));
                         methodLinesArray.clear();
                         METHOD_SCOPE_FLAG=false;
                     } if (globalVariableMatcher.find()){
                         globalVariablesArray.addAll(Variable.variableInstasiation(line, true));
-                    } else if (emptyLineMatcher.find()){
-                        //todo raise exception
                     }
                 }
-            }
-        } if (closingCurlyBracketCounter!=openingCurlyBracketCounter){
+        } if (closingBracketCounter != openingBracketCounter){
             //TODO raise exception
         }
     }
