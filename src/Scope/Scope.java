@@ -25,7 +25,8 @@ public abstract class Scope {
     /* the local variables of the upper scope */
     protected ArrayList<Variable> upperScopeVariables;
 
-    protected static Pattern ASSIGNMENT_PATTERN = Pattern.compile("^\\s*\\b\\w*\\b\\s*=\\s*(\\b\\w*\\b|[-]?\\d+(\\.?\\d+)|(\\"[^"]\\")|(\\'.\\'))\\s*;\\s*$");
+    protected static Pattern ASSIGNMENT_PATTERN = Pattern.compile("^\\s*\\b\\w*\\b\\s*=\\s*(\\b\\w*\\b|[-]?\\d+(\\.?\\d+)|(\"[^\"]*\")|(\'.\'))\\s*;\\s*$");
+
 
 
     public Scope(){}
