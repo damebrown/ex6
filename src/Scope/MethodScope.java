@@ -17,7 +17,7 @@ public class MethodScope extends Scope {
     /*Constants*/
     private String methodName;
 
-    public static final ArrayList<Variable> methodParametersArray = new ArrayList<>();
+    public final ArrayList<Variable> methodParametersArray = new ArrayList<>();
 
     private static final Pattern METHOD_NAME_PATTERN = Pattern.compile("(\\b\\s+[a-zA-Z]\\w*){1}");
 
@@ -27,8 +27,9 @@ public class MethodScope extends Scope {
 
     private static final Pattern METHOD_CALL_PATTERN = Pattern.compile("([a-zA-Z]\\w*){1}[(](\\w*)[)][;]");
 
-    private static final Pattern METHOD_PARAMETER_PATTERN = Pattern.compile(
+    private static final Pattern DECLARATION_PARAMETER_PATTERN = Pattern.compile(
             "(final\\s*)?(boolean|int|String|char|double)\\s+\\w+");
+    private static final Pattern CALL_PARAMETER_PATTERN = Pattern.compile();
 
 
 
@@ -63,17 +64,27 @@ public class MethodScope extends Scope {
                     lastLineMatcher = CLOSING_PATTERN.matcher(line);
             if (methodCallMatcher.find()){
                 boolean nameFlag = false;
-                String foundMethod = line.substring(methodCallMatcher.start(), methodCallMatcher.end());
-                for (MethodScope method : Sjavac.methodsArray){
-                    if (foundMethod.startsWith(method.getMethodName())){
+                String foundMethodName = line.substring(methodCallMatcher.start(), methodCallMatcher.end());
+                MethodScope foundMethod=null;
+                for (MethodScope method : Sjavac.methodsArray) {
+                    if (foundMethodName.startsWith(method.getMethodName())) {
                         nameFlag = true;
+                        foundMethod = method;
+                        break;
                     }
                 } if (nameFlag){
-
+                    int numberOfArgs = foundMethod.methodParametersArray.size(), argsCounter=0;
+                    Matcher parameterMatcher = DECLARATION_PARAMETER_PATTERN.matcher(line);
+                    while (parameterMatcher.find()){
+                        argsCounter++;
+                        String parameter = line.substring(parameterMatcher.start(), parameterMatcher.end());
+                    } if (argsCounter>numberOfArgs){
+                        throw new IllegalScopeException("ERROR: malformed method call in "+getMethodName());
+                    }
 
                     //TODO check that parameters of method call are valid
                 } else {
-                    throw new IllegalScopeException("ERROR:");
+                    throw new IllegalScopeException("ERROR: malformed method call in "+getMethodName());
                 }
             } else if (variableDeclarationMatcher.find()){
                 //if (){}
@@ -96,7 +107,7 @@ public class MethodScope extends Scope {
     }
 
     private void generateArgs(String declarationLine) throws IllegalTypeException {
-        Matcher parameterMatcher = METHOD_PARAMETER_PATTERN.matcher(declarationLine);
+        Matcher parameterMatcher = DECLARATION_PARAMETER_PATTERN.matcher(declarationLine);
         // verify method structure
         if (parameterMatcher.matches()){
             String parameterDeclaration;

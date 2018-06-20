@@ -7,6 +7,8 @@ import main.Sjavac;
 
 import java.util.*;
 import java.util.regex.Matcher;
+import java.util.regex.Pattern;
+
 import static main.Sjavac.*;
 
 
@@ -22,6 +24,9 @@ public abstract class Scope {
     protected Scope fatherScope;
     /* the local variables of the upper scope */
     protected ArrayList<Variable> upperScopeVariables;
+
+    protected static Pattern ASSIGNMENT_PATTERN = Pattern.compile("^\\s*\\b\\w*\\b\\s*=\\s*(\\b\\w*\\b|[-]?\\d+(\\.?\\d+)|(\\"[^"]\\")|(\\'.\\'))\\s*;\\s*$");
+
 
     public Scope(){}
 
