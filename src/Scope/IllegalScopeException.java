@@ -4,11 +4,11 @@ import main.IllegalCodeException;
 
 public class IllegalScopeException extends IllegalCodeException {
 
-    IllegalScopeException(String errorMessage){
+    public IllegalScopeException(String errorMessage){
         super(errorMessage);
     }
 
-    IllegalScopeException(){
+    public IllegalScopeException(){
         super();
     }
 }

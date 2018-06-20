@@ -1,6 +1,7 @@
 package Scope;
 
 import Types.IllegalTypeException;
+import Types.Variable;
 import main.Sjavac;
 
 import java.util.ArrayList;
@@ -15,13 +16,24 @@ public class MethodScope extends Scope {
     /*Constants*/
     private String methodName;
 
-    private final Pattern METHOD_NAME_PATTERN = Pattern.compile("(\\b\\s+[a-zA-Z]\\w*){1}");
+    public static final ArrayList<Variable> methodParametersArray = new ArrayList<>();
 
-    private final Pattern RETURN_PATTERN = Pattern.compile("\\s*(return;)\\s*");
+    private static final Pattern METHOD_NAME_PATTERN = Pattern.compile("(\\b\\s+[a-zA-Z]\\w*){1}");
 
-    private final Pattern CLOSING_PATTERN = Pattern.compile("\\s*(})\\s*");
+    private static final Pattern RETURN_PATTERN = Pattern.compile("\\s*(return;)\\s*");
 
-    private final Pattern METHOD_CALL_PATTERN = Pattern.compile("([a-zA-Z]\\w*){1}[(](\\w*)[)][;]");
+    private static final Pattern CLOSING_PATTERN = Pattern.compile("\\s*(})\\s*");
+
+    private static final Pattern METHOD_CALL_PATTERN = Pattern.compile("([a-zA-Z]\\w*){1}[(](\\w*)[)][;]");
+
+    private static final Pattern METHOD_DECLARATION_PATTERN = Pattern.compile("^\\s*void\\s+(\\w*)[(]\\s*" +
+            "((boolean|int|String|char|double)\\s+(\\b\\w*\\b))\\s*" +
+            "(,\\s*(boolean|int|String|char|double)\\s+(\\b\\w*\\b)\\s*)*[)]\\{$");
+
+    private static final Pattern METHOD_PARAMETER_PATTERN = Pattern.compile(
+            "((boolean|int|String|char|double)\\s+(\\w*))");
+
+
 
     public MethodScope(ArrayList<String> arrayOfLines) throws IllegalScopeException {
         try{
@@ -76,6 +88,25 @@ public class MethodScope extends Scope {
         //parameters, validity of name,
         //todo lemamesh method-call-parameters-validity check
         return true;
+    }
+
+    private void generateArgs(String declarationLine) throws IllegalTypeException {
+        Matcher parameterMatcher = METHOD_PARAMETER_PATTERN.matcher(declarationLine);
+        // verify method structure
+        if (parameterMatcher.matches()){
+            String parameterDeclaration;
+            //find all occurrences
+            while (parameterMatcher.find()) {
+                parameterDeclaration = declarationLine.substring(parameterMatcher.start(), parameterMatcher.end());
+                // while finding variables generate them and add to the method
+                if (!parameterDeclaration.equals("") && !parameterDeclaration.equals(parameterMatcher.group(1))) {
+                    methodParametersArray.addAll(Variable.variableInstasiation(parameterDeclaration,false));
+                }
+            }
+        } //TODO this is really an exception? can't there be a method with no param?
+        else {
+            throw new IllegalTypeException();
+        }
     }
 
 

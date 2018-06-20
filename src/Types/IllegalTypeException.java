@@ -4,11 +4,11 @@ import main.IllegalCodeException;
 
 public class IllegalTypeException extends IllegalCodeException {
 
-    IllegalTypeException(String errorMessage){
+    public IllegalTypeException(String errorMessage){
         super(errorMessage);
     }
 
-    IllegalTypeException(){
+    public IllegalTypeException(){
         super();
     }
 }
