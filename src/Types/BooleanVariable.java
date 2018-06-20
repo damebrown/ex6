@@ -32,8 +32,14 @@ class BooleanVariable extends Variable {
     }
 
     @Override
-    public void setValue(String value) {
-        if(isValid(value))
-            this.value =value;
+    public void setValue(String assignValue) throws IllegalTypeException {
+
+        String exist = Variable.referenceAssign(assignValue);
+
+        if(isValid(value)) {
+            if(!this.isFinal) {
+                this.value = value;
+            }throw new IllegalTypeException("Value cannot be assigned into final variable");
+        }throw new IllegalTypeException("Illegal type, should be boolean type value");
     }
 }
