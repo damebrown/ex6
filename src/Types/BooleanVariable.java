@@ -10,6 +10,7 @@ class BooleanVariable extends Variable {
     public BooleanVariable(String variableString,boolean isGlobal,boolean isFinal) throws IllegalTypeException {
 
         super(isGlobal,isFinal);
+        type="boolean";
         if(variableString.contains("=")){ //todo verify empty string wont get ere
             String[] toAssign = splitter(variableString);
             this.name = toAssign[0];

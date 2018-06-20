@@ -1,6 +1,7 @@
 package Scope;
 
 import Types.IllegalTypeException;
+import main.IllegalCodeException;
 
 import java.util.ArrayList;
 
@@ -12,7 +13,7 @@ public class ConditionScope extends Scope{
         fatherScope = fatherScopeInput;
     }
 
-    public void conditionValidityManager() throws IllegalScopeException, IllegalTypeException {
+    public void conditionValidityManager() throws IllegalCodeException {
         if (conditionValidityChecker()){
             appendFatherScopeVariables();
             subScopesFactory(this);

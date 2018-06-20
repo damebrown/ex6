@@ -10,6 +10,7 @@ class DoubleVariable extends Variable {
     public DoubleVariable(String variableString,boolean isGlobal,boolean isFinal) throws IllegalTypeException {
 
         super(isGlobal,isFinal);
+        type="double";
         if(variableString.contains("=")){
             String[] toAssign = splitter(variableString);
             this.name = toAssign[0];

@@ -16,6 +16,7 @@ public class CharVariable extends Variable {
     public CharVariable(String variableString,boolean isGlobal,boolean isFinal) throws IllegalTypeException {
 
         super(isGlobal,isFinal);
+        type="char";
         if(variableString.contains("=")){
             String[] toAssign = splitter(variableString);
             this.name = toAssign[0];

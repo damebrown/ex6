@@ -7,9 +7,12 @@ class StringVariable extends Variable {
 
     private final static Pattern VALIDITY_PATTERN = Pattern.compile("[\\\"\\\'].*[\\\"\\\']");  //todo include "" ?
 
+
+
     public StringVariable(String variableString, boolean isGlobal, boolean isFinal) throws IllegalTypeException {
 
         super(isGlobal, isFinal);
+        type = "String";
         if (variableString.contains("=")) {
             String[] toAssign = splitter(variableString);
 

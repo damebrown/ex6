@@ -2,6 +2,7 @@ package Scope;
 
 import Types.IllegalTypeException;
 import Types.Variable;
+import main.IllegalCodeException;
 import main.Sjavac;
 
 import java.util.*;
@@ -25,41 +26,22 @@ public abstract class Scope {
     public Scope(){}
 
 
-//    protected void scopeVariableFactory() throws IllegalTypeException {
-//        int openingCounter=0, closingCounter=0;
-//        for (String line : scopeLinesArray){
-//            Matcher closingMatcher = CLOSING_BRACKET_PATTERN.matcher(line),
-//                    openingMatcher = OPENING_BRACKET_PATTERN.matcher(line),
-//                    globalVariableMatcher = VARIABLE_DECLARATION_PATTERN.matcher(line);
-//            if(!line.equals(scopeLinesArray.get(0))){
-//                break;
-//            } else if (openingMatcher.find()){
-//                openingCounter++;
-//            } else if (closingMatcher.find()){
-//                closingCounter++;
-//            } else if (){
-//                if (globalVariableMatcher.find()){
-//                    ArrayList<Variable> variables = Variable.variableInstasiation(line, false);
-//                    localVariables.addAll(variables);
-//                }
-//            }
-//        }
-//    }
-
     //TODO check that method calls inside a scope are valid
 
     /**
      * makes all the scopes instances inside the received upmost scope instance
      * @param upmostScope the scope to search scopes in
      */
-    protected void subScopesFactory(Scope upmostScope) throws IllegalScopeException, IllegalTypeException {
+    protected void subScopesFactory(Scope upmostScope) throws IllegalCodeException {
         Scope fatherScope=upmostScope, currentScope=null;
         for (String line : scopeLinesArray){
             Matcher closingMatcher = CLOSING_BRACKET_PATTERN.matcher(line),
                     openingMatcher = OPENING_BRACKET_PATTERN.matcher(line),
-                    globalVariableMatcher = VARIABLE_DECLARATION_PATTERN.matcher(line);
+                    variableDeclarationMatcher = VARIABLE_DECLARATION_PATTERN.matcher(line);
             if (currentScope==null){
-                if (globalVariableMatcher.find()){
+                if (closingMatcher.find()){
+                    return;
+                } else if (variableDeclarationMatcher.find()){
                     ArrayList<Variable> variables = Variable.variableInstasiation(line, false);
                     fatherScope.localVariables.addAll(variables);
                 }
@@ -70,23 +52,21 @@ public abstract class Scope {
                     currentScope = new ConditionScope(subScopeLinesArray, fatherScope);
                 }
             } else if (currentScope!=null) {
+                currentScope.scopeLinesArray.add(line);
                 if (!closingMatcher.find()) {
-                    currentScope.scopeLinesArray.add(line);
                     if (!openingMatcher.find()){
-                        if (globalVariableMatcher.find()){
+                        if (variableDeclarationMatcher.find()){
                             ArrayList<Variable> variables = Variable.variableInstasiation(line, false);
                             currentScope.localVariables.addAll(variables);
-                        } else {
-                            ((ConditionScope) currentScope).conditionValidityManager();
-                            currentScope = fatherScope;
                         }
                     }
+                } else {
+                    ((ConditionScope) currentScope).conditionValidityManager();
+                    currentScope = fatherScope;
                 }
             }
         }
     }
-
-
 }
 
 

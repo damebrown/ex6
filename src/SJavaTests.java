@@ -87,7 +87,7 @@ public class SJavaTests {
      * Calling Sjava.main and checking the result
      * @param testFile The path of the test
      */
-    private void runTest(Path testFile) {
+    private void runTest(Path testFile) throws IOException, IllegalCodeException {
         this.setupStreams();
 
         String filePath = testFile.toString();

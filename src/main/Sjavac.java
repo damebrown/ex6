@@ -35,13 +35,15 @@ public class Sjavac {
     public static ArrayList<MethodScope> methodsArray = new ArrayList<>();
 
     public static final Pattern OPENING_BRACKET_PATTERN =Pattern.compile("(\\{)");
-    public static final Pattern CLOSING_BRACKET_PATTERN =Pattern.compile("(^ *(}))\\s*$");
+    public static final Pattern CLOSING_BRACKET_PATTERN =Pattern.compile("(})");
     public static final Pattern VARIABLE_DECLARATION_PATTERN =
             Pattern.compile("^[ ]*(final )*[ ]*\\b(int|String|double|Char|boolean)\\b[ ]+(\\b\\w*\\b)[ ]*(=[ ]*((\\b\\w*\\b)|" +
             "(\\\"[^\"]*\\\")))*[ ]*(,[ ]*(\\b\\w*\\b)" +
             "[ ]*(=[ ]*((\\b\\w*\\b)|(\\\"[^\"]*\\\")))*)*[ ]*;[ ]*$");
-    public static final Pattern METHOD_DECLARATION_PATTERN =Pattern.compile("((void)[ ]+[a-zA-Z][a-zA-Z_0-9]*[ ]*(\\()\\w*(\\))(\\{)$)");
-    public static final Pattern END_OF_LINE_PATTERN =Pattern.compile("(\\{)|(})|(;)");
+    private static final Pattern METHOD_DECLARATION_PATTERN = Pattern.compile("^\\s*(void)\\s+[a-zA-Z]\\w*\\s*" +
+            "[(](\\s*((final\\s+)?)(int|String|double|Char|boolean)\\s+(\\w+)\\s*)?(\\s*(,)\\s*((final \\s*)?)" +
+            "(int|String|double|Char|boolean)\\s+(\\w+)\\s*)*[)](\\{)$");
+    public static final Pattern END_OF_LINE_PATTERN =Pattern.compile("(\\{)|(^\\s*}\\s*$)|(;)");
     public static final Pattern COMMENT_PATTERN =Pattern.compile("[/]{2}");
     public static final Pattern EMPTY_LINE_PATTERN = Pattern.compile("\\s");
 
@@ -139,7 +141,11 @@ public class Sjavac {
     }
 
 
-    public static void main(String[] args){}
+    public static void main(String[] args) throws IOException, IllegalCodeException {
+        for (String filePath: args){
+            new Sjavac(filePath);
+        }
+    }
 }
 
 

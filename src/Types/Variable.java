@@ -20,7 +20,7 @@ public abstract class Variable {
     private static final Pattern DECLARATION_PATTERN = Pattern.compile(
             "^[ ]*(final\\s*)?\\b(int|String|double|char|boolean)\\b[ ]+(\\b\\w*\\b)[ ]*(=[ ]*" +
                     "(([^ \\\"]*)|(\\\"[^\\\"]*\\\")))*[ ]*(,[ ]*(\\b\\w*\\b)[ ]*" +
-                    "(=[ ]*(([^ \"]*)|(\\\"[^\\\"]*\\\")))*)*[ ]*;[ ]*$");
+                    "(=[ ]*(([^ \"]*)|(\\\"[^\\\"]*\\\")))*)*[ ]*;?[ ]*$");
 
 
     /* Data members */
@@ -29,6 +29,7 @@ public abstract class Variable {
     protected boolean isGlobal;
     protected java.lang.String name;
     protected java.lang.String value;
+    protected static java.lang.String type;
 
 
     public Variable(){}
@@ -41,6 +42,9 @@ public abstract class Variable {
         this.isFinal = isFinal;
     }
 
+    protected String getType(){
+        return type;
+    }
     /**
      * this method gets a line in which there's a decleration of a a variable, and calls the relevant
      * consturctors upon it

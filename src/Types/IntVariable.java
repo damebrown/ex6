@@ -10,6 +10,7 @@ class IntVariable extends Variable{
     public IntVariable(String variableString,boolean isGlobal,boolean isFinal) throws IllegalTypeException {
 
         super(isGlobal,isFinal);
+        type="int";
         if(variableString.contains("=")){
             String[] toAssign = splitter(variableString);
             this.name = toAssign[0];
@@ -35,4 +36,5 @@ class IntVariable extends Variable{
         if(isValid(value))
             this.value =value;
     }
+
 }

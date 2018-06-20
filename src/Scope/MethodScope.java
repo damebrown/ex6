@@ -2,6 +2,7 @@ package Scope;
 
 import Types.IllegalTypeException;
 import Types.Variable;
+import main.IllegalCodeException;
 import main.Sjavac;
 
 import java.util.ArrayList;
@@ -26,12 +27,9 @@ public class MethodScope extends Scope {
 
     private static final Pattern METHOD_CALL_PATTERN = Pattern.compile("([a-zA-Z]\\w*){1}[(](\\w*)[)][;]");
 
-    private static final Pattern METHOD_DECLARATION_PATTERN = Pattern.compile("^\\s*void\\s+(\\w*)[(]\\s*" +
-            "((boolean|int|String|char|double)\\s+(\\b\\w*\\b))\\s*" +
-            "(,\\s*(boolean|int|String|char|double)\\s+(\\b\\w*\\b)\\s*)*[)]\\{$");
-
     private static final Pattern METHOD_PARAMETER_PATTERN = Pattern.compile(
-            "((boolean|int|String|char|double)\\s+(\\w*))");
+            "(final\\s*)?(boolean|int|String|char|double)\\s+\\w+");
+
 
 
 
@@ -39,9 +37,12 @@ public class MethodScope extends Scope {
         try{
             scopeLinesArray = arrayOfLines;
             fatherScope=null;
+            generateArgs(arrayOfLines.get(0));
             methodNameAssigner(arrayOfLines.get(0));
         } catch (IllegalScopeException e){
             throw new IllegalScopeException();
+        } catch (IllegalTypeException e) {
+            e.printStackTrace();
         }
     }
 
@@ -68,7 +69,11 @@ public class MethodScope extends Scope {
                         nameFlag = true;
                     }
                 } if (nameFlag){
+
+
                     //TODO check that parameters of method call are valid
+                } else {
+                    throw new IllegalScopeException("ERROR:");
                 }
             } else if (variableDeclarationMatcher.find()){
                 //if (){}
@@ -97,20 +102,15 @@ public class MethodScope extends Scope {
             String parameterDeclaration;
             //find all occurrences
             while (parameterMatcher.find()) {
-                parameterDeclaration = declarationLine.substring(parameterMatcher.start(), parameterMatcher.end());
                 // while finding variables generate them and add to the method
-                if (!parameterDeclaration.equals("") && !parameterDeclaration.equals(parameterMatcher.group(1))) {
-                    methodParametersArray.addAll(Variable.variableInstasiation(parameterDeclaration,false));
-                }
+                parameterDeclaration = declarationLine.substring(parameterMatcher.start(), parameterMatcher.end());
+                methodParametersArray.addAll(Variable.variableInstasiation(parameterDeclaration,false));
             }
-        } //TODO this is really an exception? can't there be a method with no param?
-        else {
-            throw new IllegalTypeException();
         }
     }
 
 
-    public void methodValidityManager() throws IllegalScopeException, IllegalTypeException {
+    public void methodValidityManager() throws IllegalCodeException {
         if (methodValidityChecker()){
             subScopesFactory(this);
             upperScopeVariables = Sjavac.globalVariablesArray;
