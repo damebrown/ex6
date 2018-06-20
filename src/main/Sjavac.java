@@ -10,7 +10,7 @@ import java.io.FileReader;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.regex.*;
-
+// i think it fucking works madafakaaaaa!!!!
 public class Sjavac {
 
     //scope factory and variable factory- primary scanning the code and creating
@@ -48,7 +48,6 @@ public class Sjavac {
     public static final Pattern EMPTY_LINE_PATTERN = Pattern.compile("\\s");
 
 
-    //YOTAM HERE IS A CHANGE
 
     /*Constructor*/
 
