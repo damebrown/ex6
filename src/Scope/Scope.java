@@ -25,11 +25,41 @@ public abstract class Scope {
     /* the local variables of the upper scope */
     protected ArrayList<Variable> upperScopeVariables;
 
-    protected static Pattern ASSIGNMENT_PATTERN = Pattern.compile("^\\s*\\b\\w*\\b\\s*=\\s*(\\b\\w*\\b|[-]?\\d+(\\.?\\d+)|(\"[^\"]*\")|(\'.\'))\\s*;\\s*$");
 
 
 
     public Scope(){}
+
+
+    protected void scopeVariableFactory() throws IllegalTypeException {
+        int openingCounter=0, closingCounter=0;
+        for (String line : scopeLinesArray){
+            Matcher closingMatcher = CLOSING_BRACKET_PATTERN.matcher(line),
+                    openingMatcher = OPENING_BRACKET_PATTERN.matcher(line),
+                    variableDeclarationMatcher = VARIABLE_DECLARATION_PATTERN.matcher(line);
+            if(!line.equals(scopeLinesArray.get(0))){
+                if (openingMatcher.find()){
+                    openingCounter++;
+                } else if (closingMatcher.find()){
+                    closingCounter++;
+                } else if ((variableDeclarationMatcher.find())&&(closingCounter!=openingCounter)){
+                    ArrayList<Variable> newVariables = Variable.variableInstasiation(line, false);
+                    if (localVariables.isEmpty()) {
+                        localVariables.addAll(newVariables);
+                    } else for (Variable variable: localVariables){
+                        for (Variable newVariable:newVariables){
+                            if ((newVariable.getType().equals(variable.getType()))&&
+                                    (newVariable.getType().equals(variable.getType()))){
+                                throw new IllegalTypeException("ERROR: trying to assign an already existing" +
+                                        " variable");
+
+                            }
+                        }
+                    } localVariables.addAll(newVariables);
+                }
+            }
+        }
+    }
 
 
     //TODO check that method calls inside a scope are valid
@@ -42,35 +72,34 @@ public abstract class Scope {
         Scope fatherScope=upmostScope, currentScope=null;
         for (String line : scopeLinesArray){
             Matcher closingMatcher = CLOSING_BRACKET_PATTERN.matcher(line),
-                    openingMatcher = OPENING_BRACKET_PATTERN.matcher(line),
-                    variableDeclarationMatcher = VARIABLE_DECLARATION_PATTERN.matcher(line);
+                    openingMatcher = OPENING_BRACKET_PATTERN.matcher(line);
             if (currentScope==null){
                 if (closingMatcher.find()){
-                    return;
-                } else if (variableDeclarationMatcher.find()){
-                    ArrayList<Variable> variables = Variable.variableInstasiation(line, false);
-                    fatherScope.localVariables.addAll(variables);
+                    break;
+                } else if (openingMatcher.find()){
+                    if (!scopeLinesArray.get(0).equals(line)){
+                        ArrayList<String> subScopeLinesArray = new ArrayList<>();
+                        subScopeLinesArray.add(line);
+                        currentScope = new ConditionScope(subScopeLinesArray, fatherScope);
+                    }
                 }
-            } if (openingMatcher.find()){
-                if (!scopeLinesArray.get(0).equals(line)){
+            } else {
+                if (closingMatcher.find()) {
+                    currentScope.scopeLinesArray.add(line);
+                    currentScope.scopeVariableFactory();
+                    currentScope = fatherScope;
+                    ((ConditionScope) currentScope).conditionValidityManager();
+                } else if (openingMatcher.find()){
                     ArrayList<String> subScopeLinesArray = new ArrayList<>();
                     subScopeLinesArray.add(line);
+                    fatherScope = currentScope;
                     currentScope = new ConditionScope(subScopeLinesArray, fatherScope);
-                }
-            } else if (currentScope!=null) {
-                currentScope.scopeLinesArray.add(line);
-                if (!closingMatcher.find()) {
-                    if (!openingMatcher.find()){
-                        if (variableDeclarationMatcher.find()){
-                            ArrayList<Variable> variables = Variable.variableInstasiation(line, false);
-                            currentScope.localVariables.addAll(variables);
-                        }
-                    }
                 } else {
-                    ((ConditionScope) currentScope).conditionValidityManager();
-                    currentScope = fatherScope;
+                    currentScope.scopeLinesArray.add(line);
                 }
             }
+        } if (currentScope!=upmostScope){
+            throw new IllegalScopeException("ERROR: malform method structure");
         }
     }
 }

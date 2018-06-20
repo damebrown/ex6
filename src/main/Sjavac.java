@@ -10,7 +10,7 @@ import java.io.FileReader;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.regex.*;
-// i think it fucking works madafakaaaaa!!!!
+
 public class Sjavac {
 
     //scope factory and variable factory- primary scanning the code and creating
@@ -20,7 +20,6 @@ public class Sjavac {
     //call matcher.find() or matcher.matches();
 
     /*Constants*/
-    private static File checkedFile;
 
     private static BufferedReader lineReader;
 
@@ -30,7 +29,7 @@ public class Sjavac {
 
     public static ArrayList<Variable> globalVariablesArray = new ArrayList<>();
 
-    public ArrayList<String> linesArray = new ArrayList<>();
+    private ArrayList<String> linesArray = new ArrayList<>();
 
     public static ArrayList<MethodScope> methodsArray = new ArrayList<>();
 
@@ -43,9 +42,9 @@ public class Sjavac {
     private static final Pattern METHOD_DECLARATION_PATTERN = Pattern.compile("^\\s*(void)\\s+[a-zA-Z]\\w*\\s*" +
             "[(](\\s*((final\\s+)?)(int|String|double|Char|boolean)\\s+(\\w+)\\s*)?(\\s*(,)\\s*((final \\s*)?)" +
             "(int|String|double|Char|boolean)\\s+(\\w+)\\s*)*[)](\\{)$");
-    public static final Pattern END_OF_LINE_PATTERN =Pattern.compile("(\\{)|(^\\s*}\\s*$)|(;)");
-    public static final Pattern COMMENT_PATTERN =Pattern.compile("[/]{2}");
-    public static final Pattern EMPTY_LINE_PATTERN = Pattern.compile("\\s");
+    private static final Pattern END_OF_LINE_PATTERN =Pattern.compile("(\\{)|(^\\s*}\\s*$)|(;)");
+    private static final Pattern COMMENT_PATTERN =Pattern.compile("[/]{2}");
+    private static final Pattern EMPTY_LINE_PATTERN = Pattern.compile("\\s");
 
 
 
@@ -58,8 +57,7 @@ public class Sjavac {
     public Sjavac(String arg) throws IOException, IllegalCodeException {
         try {
             //TODO check if need to nullify the globalVariablesArray
-            checkedFile = new File(arg);
-            lineReader = new BufferedReader(new FileReader(checkedFile));
+            lineReader = new BufferedReader(new FileReader(new File(arg)));
             upperScopeFactory();
             methodInitializer();
         } catch (IOException e) {

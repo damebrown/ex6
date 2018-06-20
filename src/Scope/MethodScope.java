@@ -9,6 +9,8 @@ import java.util.ArrayList;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import static main.Sjavac.CLOSING_BRACKET_PATTERN;
+import static main.Sjavac.OPENING_BRACKET_PATTERN;
 import static main.Sjavac.VARIABLE_DECLARATION_PATTERN;
 
 
@@ -28,8 +30,15 @@ public class MethodScope extends Scope {
     private static final Pattern METHOD_CALL_PATTERN = Pattern.compile("([a-zA-Z]\\w*){1}[(](\\w*)[)][;]");
 
     private static final Pattern DECLARATION_PARAMETER_PATTERN = Pattern.compile(
-            "(final\\s*)?(boolean|int|String|char|double)\\s+\\w+");
+            "(final\\s*)?(boolean|int|String|char|double)\\s+(\\w+)");
     private static final Pattern CALL_PARAMETER_PATTERN = Pattern.compile("\\w+");
+
+    private static final Pattern RAW_PARAMETERS_PATTERN = Pattern.compile("([-]?\\d+(\\.?\\d+)|(\"[^\"]*\")|(\'.\')|\\b\\w*\\b)");
+
+    private static Pattern ASSIGNMENT_PATTERN = Pattern.compile("^\\s*\\b\\w*\\b\\s*=\\s*(\\b\\w*\\b|[-]?\\d+(\\.?\\d+)|(\"[^\"]*\")|(\'.\'))\\s*;\\s*$");
+
+    private static Pattern ASSIGNMENT_DECONSTRUCTION = Pattern.compile("^\\s*(\\w*)(\\s*=\\s*)(\\w*|[-]?\\d+(\\.?\\d+)|(\"[^\"]*\")|(\'.\'))(\\s*;\\s*)$");
+
 
 
 
@@ -40,8 +49,9 @@ public class MethodScope extends Scope {
             fatherScope=null;
             generateArgs(arrayOfLines.get(0));
             methodNameAssigner(arrayOfLines.get(0));
+            scopeVariableFactory();
         } catch (IllegalScopeException e){
-            throw new IllegalScopeException();
+            throw new IllegalScopeException("ERROR: something with a method is wrong");
         } catch (IllegalTypeException e) {
             e.printStackTrace();
         }
@@ -55,27 +65,27 @@ public class MethodScope extends Scope {
 //must first assign a value to the global variable itself (even if it was assigned a value in some
 //other method).
 
-    private boolean methodValidityChecker() throws IllegalScopeException{
-        //TODO check for: validity of parameters
+    private boolean methodValidityChecker() throws IllegalCodeException {
+        subScopesFactory(this);
         for (String line: scopeLinesArray){
             Matcher returnMatcher = RETURN_PATTERN.matcher(line),
                     methodCallMatcher = METHOD_CALL_PATTERN.matcher(line),
-                    variableDeclarationMatcher = VARIABLE_DECLARATION_PATTERN.matcher(line),
+                    assignmentMatcher = ASSIGNMENT_PATTERN.matcher(line),
+                    closingBracketMatcher = CLOSING_BRACKET_PATTERN.matcher(line),
+                    openingBracketMatcher = OPENING_BRACKET_PATTERN.matcher(line),
                     lastLineMatcher = CLOSING_PATTERN.matcher(line);
             //checking for method calls validity
             if (methodCallMatcher.find()){
-                if (methodCallValidator(line, methodCallMatcher)){
-
+                if (!methodCallValidator(line, methodCallMatcher)){
+                    throw new IllegalScopeException("ERROR: malformed call to method in "+getMethodName());
                 }
             }
             //checking for variable assignment validity
-            else if (variableDeclarationMatcher.find()){
-                //if (){}
-                //TODO check: if it is global, raise exception
-                //TODO check: if it is not global, that a variable with the same name doesn't exist in the scope
+            else if (assignmentMatcher.find()){
 
+            }
             //checking that the before last line is a return statement
-            } else if (scopeLinesArray.get(scopeLinesArray.size()-2).equals(line)){
+            else if (scopeLinesArray.get(scopeLinesArray.size()-2).equals(line)){
                 if (!returnMatcher.find()){
                     throw new IllegalScopeException("ERROR: malformed method structure in: "+getMethodName());
                 }
@@ -106,33 +116,57 @@ public class MethodScope extends Scope {
     }
 
     private boolean methodCallValidator(String line, Matcher methodCallMatcher) throws IllegalScopeException {
-        boolean nameFlag = false;
+        boolean nameFlag = false, existenceFlag = false;
         String foundMethodName = line.substring(methodCallMatcher.start(), methodCallMatcher.end());
         MethodScope foundMethod=null;
         for (MethodScope method : Sjavac.methodsArray) {
             if (foundMethodName.startsWith(method.getMethodName())) {
                 nameFlag = true;
                 foundMethod = method;
-                break;
             }
         } if (nameFlag){
-            int numberOfArgs = foundMethod.methodParametersArray.size(), argsCounter=0;
-            Matcher parameterMatcher = CALL_PARAMETER_PATTERN.matcher(line);
-            while (parameterMatcher.find()){
-                argsCounter++;
-                //to check for a call with existing variables
-                //to check for a call with mishtanim (foo(5))
-                //if not mishtane and not existing variable- raise exception
-                String parameterName = line.substring(parameterMatcher.start(), parameterMatcher.end());
-
-            } if (argsCounter>numberOfArgs){
-                throw new IllegalScopeException("ERROR: malformed method call in "+getMethodName());
+            if (foundMethod.methodParametersArray.size()==0){
+                return true;
+            } else {
+                int numberOfArgs = foundMethod.methodParametersArray.size(), argsCounter=0;
+                Matcher parameterMatcher = CALL_PARAMETER_PATTERN.matcher(line);
+                while (parameterMatcher.find()) {
+                    argsCounter++;
+                    String input = line.substring(parameterMatcher.start(), parameterMatcher.end());
+                    //to check for a call with existing variables
+                    while (!existenceFlag){
+                        for (Variable variable : localVariables) {
+                            if (variable.getName().equals(input)) {
+                                existenceFlag = true;
+                                break;
+                            }
+                        } for (Variable variable : methodParametersArray) {
+                            if (variable.getName().equals(input)) {
+                                existenceFlag = true;
+                                break;
+                            }
+                        } for (Variable globalVariable: upperScopeVariables){
+                            if (globalVariable.getName().equals(input)) {
+                                existenceFlag = true;
+                                break;
+                            }
+                        }
+                        //to check for a call with non existing variables
+                        Variable suitableVariable = foundMethod.methodParametersArray.get(argsCounter - 1);
+                        if (!suitableVariable.isValid(input)){
+                            throw new IllegalScopeException("ERROR: malformed method args in "+getMethodName());
+                        } else {
+                            existenceFlag=true;
+                        }
+                    }
+                }
+                if (argsCounter > numberOfArgs) {
+                    throw new IllegalScopeException("ERROR: malformed method call in " + getMethodName());
+                }
             }
-
-            //TODO check that parameters of method call are valid
         } else {
             throw new IllegalScopeException("ERROR: malformed method call in "+getMethodName());
-        }
+        } return existenceFlag;
     }
 
 
