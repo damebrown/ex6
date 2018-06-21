@@ -1,7 +1,7 @@
 //import java.io.ByteArrayOutputStream;
 //import java.util.Map;
 //
-//import main.*;
+//import oop.ex6.main.*;
 //import org.junit.jupiter.api.*;
 //
 //import java.io.*;
@@ -84,14 +84,14 @@
 //
 //    /**
 //     * The function that is used to run each test.
-//     * Calling Sjava.main and checking the result
+//     * Calling Sjava.oop.ex6.main and checking the result
 //     * @param testFile The path of the test
 //     */
 //    private void runTest(Path testFile) throws IOException, IllegalCodeException {
 //        this.setupStreams();
 //
 //        String filePath = testFile.toString();
-//        Sjavac.main(new String[] {filePath});
+//        Sjavac.oop.ex6.main(new String[] {filePath});
 //        assertEquals(SUCCESS_RESULT, this.outContent.toString().trim());
 //
 //        this.restoreStreams();

@@ -1,16 +1,17 @@
-package Scope;
+package oop.ex6.Scope;
 
-import Types.IllegalTypeException;
-import Types.Variable;
-import main.IllegalCodeException;
-import main.Sjavac;
+import oop.ex6.Types.IllegalTypeException;
+import oop.ex6.Types.Variable;
+import oop.ex6.main.IllegalCodeException;
+import oop.ex6.main.Sjavac;
 
 import java.util.ArrayList;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-import static main.Sjavac.CLOSING_BRACKET_PATTERN;
-import static main.Sjavac.OPENING_BRACKET_PATTERN;
+import static oop.ex6.main.Sjavac.CLOSING_BRACKET_PATTERN;
+import static oop.ex6.main.Sjavac.OPENING_BRACKET_PATTERN;
+import static oop.ex6.main.Sjavac.methodsArray;
 
 /**
  * The class represents a method scope object
@@ -120,7 +121,6 @@ public class MethodScope extends Scope {
      * throws IllegalTypeException
      */
     private void generateArgs(String declarationLine) throws IllegalTypeException {
-        System.out.println(declarationLine);
         Matcher parameterMatcher = DECLARATION_PARAMETER_PATTERN.matcher(declarationLine);
         // verify method structure
 //        if (parameterMatcher.find()){
@@ -155,6 +155,13 @@ public class MethodScope extends Scope {
         Matcher nameMatcher = METHOD_NAME_PATTERN.matcher(declarationLine);
         if (nameMatcher.find()){
             methodName = declarationLine.substring(nameMatcher.start()+1, nameMatcher.end());
+            if (!Sjavac.methodsArray.isEmpty()){
+                for (MethodScope method:methodsArray){
+                    if (method.getMethodName().equals(methodName)){
+                        throw new IllegalScopeException("ERROR: already taken method name");
+                    }
+                }
+            }
         } else {
             throw new IllegalScopeException();
         }

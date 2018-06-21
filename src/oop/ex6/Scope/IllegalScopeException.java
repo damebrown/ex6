@@ -1,6 +1,6 @@
-package Scope;
+package oop.ex6.Scope;
 
-import main.IllegalCodeException;
+import oop.ex6.main.IllegalCodeException;
 
 public class IllegalScopeException extends IllegalCodeException {
 

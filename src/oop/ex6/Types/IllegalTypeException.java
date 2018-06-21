@@ -1,6 +1,6 @@
-package Types;
+package oop.ex6.Types;
 
-import main.IllegalCodeException;
+import oop.ex6.main.IllegalCodeException;
 
 public class IllegalTypeException extends IllegalCodeException {
 

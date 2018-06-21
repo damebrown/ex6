@@ -1,15 +1,15 @@
-package Scope;
+package oop.ex6.Scope;
 
-import Types.IllegalTypeException;
-import Types.Variable;
-import main.IllegalCodeException;
-import main.Sjavac;
+import oop.ex6.Types.IllegalTypeException;
+import oop.ex6.Types.Variable;
+import oop.ex6.main.IllegalCodeException;
+import oop.ex6.main.Sjavac;
 
 import java.util.*;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-import static main.Sjavac.*;
+import static oop.ex6.main.Sjavac.*;
 
 
 /**
@@ -22,13 +22,13 @@ public abstract class Scope {
     protected ArrayList<String> scopeLinesArray;
     /* the local variables of the upper scope */
     protected ArrayList<Variable> upperScopeVariables;
-    /* The Scope local variables */
+    /* The oop.ex6.Types.Scope local variables */
     protected ArrayList<Variable> localVariables;
     /*an array of all reachable variables*/
     public ArrayList<ArrayList<Variable>> reachableVariables;
-    /* The Scope's upper scope */
+    /* The oop.ex6.Types.Scope's upper scope */
     protected Scope fatherScope;
-    /*The Scope's method */
+    /*The oop.ex6.Types.Scope's method */
     public MethodScope fatherMethod;
 
     //public static final Pattern SINGLE_PARAMETER_PATTERN = Pattern.compile("\\w+");
@@ -55,7 +55,6 @@ public abstract class Scope {
         } reachableVariables.add(0, localVariables);
     }
 
-    //todo WTF??
     protected void scopeVariableFactory() throws IllegalTypeException {
         int openingCounter=0, closingCounter=0;
         for (String line : scopeLinesArray){
@@ -73,8 +72,7 @@ public abstract class Scope {
                         localVariables.addAll(newVariables);
                     } else for (Variable variable: localVariables){
                         for (Variable newVariable:newVariables){
-                            if ((newVariable.getType().equals(variable.getType()))&&
-                                    (newVariable.getType().equals(variable.getType()))){
+                            if (newVariable.getType().equals(variable.getType())){
                                 throw new IllegalTypeException("ERROR: trying to assign an already existing" +
                                         " variable");
 

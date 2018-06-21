@@ -1,13 +1,13 @@
-package Types;
+package oop.ex6.Types;
 
-import main.Sjavac;
-import Scope.*;
+import oop.ex6.Scope.Scope;
+import oop.ex6.Types.*;
 
 import java.util.*;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-import static main.Sjavac.globalVariablesArray;
+import static oop.ex6.main.Sjavac.globalVariablesArray;
 
 /**
  * the class represent a general variable object
@@ -110,19 +110,15 @@ public abstract class Variable {
      */
     public static ArrayList<Variable> variableInstantiation(String declarationString, boolean isGlobal) throws
             IllegalTypeException {
-
         ArrayList<Variable> variablesInstances = new ArrayList<>();
-
         //verify declaration structure
         if(!declarationValidator(declarationString))
             throw new IllegalTypeException();
-
         else{
             //prepare parameters
             String typeInput;
             List<String> variablesToCreate = variableSeparator(declarationString);
             boolean isFinal;
-
             //case it is final
             if(variablesToCreate.get(0).equals(FINAL)) {
                 isFinal = true;
@@ -135,24 +131,17 @@ public abstract class Variable {
                 typeInput = variablesToCreate.get(0);
                 variablesToCreate = variablesToCreate.subList(1,variablesToCreate.size());
             }
-
             Variable currVar = null;
-
             // run over variable signature and initialize it
             for(String varSignature : variablesToCreate){
-
                 // verify the variable name is valid
                 if (!nameValidator(varSignature)) {
                     throw new IllegalTypeException();
                 }
-
                 //check if var exist, replace value if exist
                 String existingVar = Variable.referenceAssign(varSignature);
                 if (!existingVar.equals(""))
                     varSignature = existingVar;
-
-
-
                 // create the variable instance
                 switch (typeInput) {
                     case STRING:
@@ -170,11 +159,9 @@ public abstract class Variable {
                     case BOOLEAN:
                         currVar = new BooleanVariable(varSignature, isGlobal, isFinal);
                         break;
-                }
-                variablesInstances.add(currVar);
+                } variablesInstances.add(currVar);
             }
-        }
-        return variablesInstances;
+        } return variablesInstances;
     }
 
     /**
@@ -205,8 +192,8 @@ public abstract class Variable {
                             if (localVariable.getName().equals(variableName)){
                                 //the check if the variable is final and if the value is valid is done
                                 // in the setValue method
-                                if (this.getType().equals(localVariable.getType())){
-                                    if (localVariable.value!=null){
+                                if (localVariable.value!=null){
+                                    if (this.isValid(localVariable.getValue())){
                                         this.value = localVariable.value;
                                     } else {
                                         throw new IllegalTypeException("ERROR: you tried to assign a null" +

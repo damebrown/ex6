@@ -1,8 +1,8 @@
-package main;
+package oop.ex6.main;
 
-import FileParser.FileParser;
-import Scope.MethodScope;
-import Types.Variable;
+import oop.ex6.FileParser.FileParser;
+import oop.ex6.Scope.MethodScope;
+import oop.ex6.Types.Variable;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.regex.*;
@@ -32,9 +32,9 @@ public class Sjavac {
     public static final Pattern OPENING_BRACKET_PATTERN =Pattern.compile("(\\{)");
     public static final Pattern CLOSING_BRACKET_PATTERN =Pattern.compile("(})");
     public static final Pattern VARIABLE_DECLARATION_PATTERN =
-            Pattern.compile("^[ ]*(final )*[ ]*\\b(int|String|double|Char|boolean)\\b[ ]+(\\b\\w*\\b)[ ]*(=[ ]*((\\b\\w*\\b)|" +
-            "(\\\"[^\"]*\\\")))*[ ]*(,[ ]*(\\b\\w*\\b)" +
-            "[ ]*(=[ ]*((\\b\\w*\\b)|(\\\"[^\"]*\\\")))*)*[ ]*;[ ]*$");
+            Pattern.compile("^\\s*(final\\s+)?(int|String|double|Char|boolean)\\s+(\\w+)\\s*(=\\s*((\\w*)" +
+                    "|(\\\"[^\\\"]*\\\")|(\\\'[^\\\']*\\\')|((-)?\\d([.]\\d)?)))*\\s*(,\\s*(\\w*)\\s*(=\\s*" +
+                    "((\\w*)|([\\\"](\\w)[\\\"]))*)*)*\\s*(;)\\s*$");
     private static final Pattern METHOD_DECLARATION_PATTERN = Pattern.compile("^\\s*(void)\\s+[a-zA-Z]\\w*\\s*" +
             "[(](\\s*((final\\s+)?)(int|String|double|Char|boolean)\\s+(\\w+)\\s*)?(\\s*(,)\\s*((final \\s*)?)" +
             "(int|String|double|Char|boolean)\\s+(\\w+)\\s*)*[)]\\s*(\\{)$");
@@ -46,17 +46,31 @@ public class Sjavac {
     /*Constructor*/
     //todo what is the point of using Sjavac object? - everything is static
     /**
-     * main method
+     * oop.ex6.main method
      */
-    private Sjavac() throws IllegalCodeException {
+    private Sjavac(String[] args) throws IllegalCodeException, IOException {
 
         try {
-            //TODO check if need to nullify the globalVariablesArray
+            nullifyStaticVars();
+            linesArray = FileParser.parseFile(args);
             upperScopeFactory();
-            methodInitializer();
+            if (!methodsArray.isEmpty()){
+                methodInitializer();
+            }
         } catch (IllegalCodeException e){
             throw e;
+        } catch (IOException e){
+            throw new IOException();
         }
+    }
+
+    private void nullifyStaticVars(){
+        openingBracketCounter=0;
+        closingBracketCounter=0;
+        linesArray.clear();
+        globalVariablesArray.clear();
+        methodsArray.clear();
+        METHOD_SCOPE_FLAG=false;
     }
 
     /*Methods*/
@@ -128,19 +142,13 @@ public class Sjavac {
     }
 
     /**
-     *  main method
+     *  oop.ex6.main method
      * @param args io arguments
      */
     public static void main(String[] args){
         try{
-            //todo what if file is empty?
-            //parse file
-             linesArray = FileParser.parseFile(args);
-            //call Sjavac
-
-              Sjavac runner =  new Sjavac();
-              System.out.println("0");
-
+            new Sjavac(args);
+            System.out.println("0");
         }catch (IllegalCodeException ice){
             System.err.println(ice.getMessage());
             System.out.println("1");
@@ -148,7 +156,6 @@ public class Sjavac {
             System.err.println(e.getMessage());
             System.out.println("2");
         }
-
     }
 }
 

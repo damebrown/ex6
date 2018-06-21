@@ -1,4 +1,4 @@
-package main;
+package oop.ex6.main;
 
 /**
  * An Illegal Code exception class

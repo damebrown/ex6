@@ -1,14 +1,14 @@
-package Scope;
+package oop.ex6.Scope;
 
-import Types.IllegalTypeException;
-import main.IllegalCodeException;
+import oop.ex6.Types.IllegalTypeException;
+import oop.ex6.main.IllegalCodeException;
 
 import java.util.ArrayList;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-import static main.Sjavac.CLOSING_BRACKET_PATTERN;
-import static main.Sjavac.OPENING_BRACKET_PATTERN;
+import static oop.ex6.main.Sjavac.CLOSING_BRACKET_PATTERN;
+import static oop.ex6.main.Sjavac.OPENING_BRACKET_PATTERN;
 
 /**
  * the class represents a conditional scope object

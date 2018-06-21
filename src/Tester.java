@@ -1,4 +1,5 @@
-import Scope.*;
+import oop.ex6.Scope.IllegalScopeException;
+import oop.ex6.Scope.MethodScope;
 
 import java.util.ArrayList;
 

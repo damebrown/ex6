@@ -1,4 +1,4 @@
-package Types;
+package oop.ex6.Types;
 
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;

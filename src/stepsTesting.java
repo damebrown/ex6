@@ -1,12 +1,12 @@
-//import main.IllegalCodeException;
-//import main.Sjavac;
+//import oop.ex6.main.IllegalCodeException;
+//import oop.ex6.main.Sjavac;
 //
 //import java.io.IOException;
 //
 //public class stepsTesting {
 //
 //
-//    public static void main(String[] args){
+//    public static void oop.ex6.main(String[] args){
 //
 //
 //        String file_1 = "C:\\Users\\yotam\\Desktop\\ex6\\ex6clone\\501.txt";

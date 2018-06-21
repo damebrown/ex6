@@ -1,4 +1,4 @@
-package FileParser;
+package oop.ex6.FileParser;
 
 import java.io.BufferedReader;
 import java.io.File;
