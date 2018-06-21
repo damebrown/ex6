@@ -84,6 +84,7 @@ public class Sjavac {
             } else {
                 } if (!METHOD_SCOPE_FLAG){
                     if (methodsMatcher.matches()) {
+                        methodLinesArray.add(line);
                         METHOD_SCOPE_FLAG = true;
                         methodLinesArray.add(line);
                     } else if (globalVariableMatcher.find()){
