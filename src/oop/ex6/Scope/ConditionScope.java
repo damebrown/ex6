@@ -28,29 +28,34 @@ public class ConditionScope extends Scope{
      * @param fatherMethodInput the father method
      */
     ConditionScope(ArrayList<String> arrayOfLines, Scope fatherScopeInput, MethodScope fatherMethodInput){
+        super();
         scopeLinesArray = arrayOfLines;
         fatherScope = fatherScopeInput;
         fatherMethod = fatherMethodInput;
         appendFatherScopeVariables();
         this.variableUpdater();
     }
-    //todo what?
-    /*
-     *
-     * @throws IllegalCodeException
-     */
-    public void conditionValidityManager() throws IllegalCodeException {
-        if (conditionValidityChecker()){
-            subScopesFactory(this, fatherMethod);
-        } else {
-            throw new IllegalScopeException();        }
-    }
+
 
     /*
      * the method add the upper scope variables
      */
     private void appendFatherScopeVariables(){
-        upperScopeVariables.addAll(fatherScope.localVariables);
+        if (!fatherScope.localVariables.isEmpty())
+            upperScopeVariables.addAll(fatherScope.localVariables);
+    }
+
+    @Override
+    /*
+     *
+     * @throws IllegalCodeException
+     */
+    public void scopeValidityManager() throws IllegalCodeException {
+        if (conditionValidityChecker()){
+            subScopesFactory(this, fatherMethod);
+        } else {
+            throw new IllegalScopeException();
+        }
     }
 
     /*

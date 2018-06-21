@@ -31,12 +31,14 @@ public abstract class Scope {
     /*The oop.ex6.Types.Scope's method */
     public MethodScope fatherMethod;
 
-    //public static final Pattern SINGLE_PARAMETER_PATTERN = Pattern.compile("\\w+");
-
     static final Pattern METHOD_CALL_PATTERN = Pattern.compile("([a-zA-Z]\\w*){1}[(](\\w*)[)][;]");
 
+    /*Constructor*/
 
-        protected Scope(){
+    protected Scope(){
+            scopeLinesArray = new ArrayList<>();
+            upperScopeVariables =  new ArrayList<>();
+            localVariables = new ArrayList<>();
             reachableVariables = new ArrayList<ArrayList<Variable>>();
         }
 
@@ -44,13 +46,20 @@ public abstract class Scope {
      *  the method update to current reachable variables scope, by adding it the upper scopes variables
      */
     protected void variableUpdater(){
-        reachableVariables.add(0, globalVariablesArray);
-        reachableVariables.add(1, fatherMethod.methodParametersArray);
+        if (!globalVariablesArray.isEmpty()){
+            reachableVariables.add(0, globalVariablesArray);
+        } if (fatherMethod!=null){
+            if(!fatherMethod.methodParametersArray.isEmpty()){
+                reachableVariables.add(1, fatherMethod.methodParametersArray);
+            }
+        }
         if (!upperScopeVariables.equals(globalVariablesArray)){
-            reachableVariables.add(2, upperScopeVariables);
-        } else {
-            reachableVariables.add(2, null);
-        } reachableVariables.add(0, localVariables);
+            if (!upperScopeVariables.isEmpty()){
+                reachableVariables.add(2, upperScopeVariables);
+            }
+        }if (!localVariables.isEmpty()){
+            reachableVariables.add(3, localVariables);
+        }
     }
 
     protected void scopeVariableFactory() throws IllegalTypeException {
@@ -84,8 +93,6 @@ public abstract class Scope {
         }
     }
 
-
-
     protected void scopeValidityHelper(String line, Scope scope) throws IllegalScopeException,
             IllegalTypeException {
         Matcher methodCallMatcher = METHOD_CALL_PATTERN.matcher(line),
@@ -102,7 +109,6 @@ public abstract class Scope {
             assignmentManager(line,scope);
         }
     }
-
 
     /**
      * makes all the scopes instances inside the received upmost scope instance
@@ -126,10 +132,14 @@ public abstract class Scope {
                 }
             } else {
                 if (closingMatcher.find()) {
-                    currentScope.scopeLinesArray.add(line);
+                    if (!currentScope.equals(upMostScope)){
+                        currentScope.scopeLinesArray.add(line);
+                    }
                     currentScope.scopeVariableFactory();
                     currentScope = fatherScope;
-                    ((ConditionScope) currentScope).conditionValidityManager();
+                    if (!currentScope.equals(upMostScope)){
+                        currentScope.scopeValidityManager();
+                    }
                 } else if (openingMatcher.find()){
                     ArrayList<String> subScopeLinesArray = new ArrayList<>();
                     subScopeLinesArray.add(line);
@@ -137,13 +147,17 @@ public abstract class Scope {
                     currentScope = new ConditionScope(subScopeLinesArray, fatherScope, method);
                     method.subScopesArray.add(currentScope);
                 } else {
-                    currentScope.scopeLinesArray.add(line);
+                    if (!currentScope.equals(upMostScope)){
+                        currentScope.scopeLinesArray.add(line);
+                    }
                 }
             }
         } if (currentScope!=upMostScope){
             throw new IllegalScopeException("ERROR: malform method structure");
         }
     }
+
+    abstract void scopeValidityManager() throws IllegalCodeException ;
 
     boolean methodCallValidator(String line, Matcher methodCallMatcher) throws IllegalScopeException,
             IndexOutOfBoundsException {

@@ -83,7 +83,6 @@ public class Sjavac {
      */
     private void upperScopeFactory() throws IllegalCodeException{
         ArrayList<String> methodLinesArray = new ArrayList<>();
-
         for (String line : linesArray){
             Matcher commentMatcher = COMMENT_PATTERN.matcher(line),
                     closingMatcher = CLOSING_BRACKET_PATTERN.matcher(line),
@@ -142,7 +141,7 @@ public class Sjavac {
     private void methodInitializer() throws IllegalCodeException {
         try{
             for (MethodScope method: methodsArray){
-                method.methodValidityManager();
+                method.scopeValidityManager();
             }
         } catch (IllegalCodeException e){
             throw new IllegalCodeException();

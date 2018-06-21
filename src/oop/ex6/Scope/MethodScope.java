@@ -21,7 +21,7 @@ public class MethodScope extends Scope {
     /*Constants*/
     private String methodName;
 
-    public final ArrayList<Variable> methodParametersArray = new ArrayList<>();
+    public ArrayList<Variable> methodParametersArray;
 
     public ArrayList<Scope> subScopesArray = new ArrayList<>();
 
@@ -48,8 +48,11 @@ public class MethodScope extends Scope {
      * @throws IllegalScopeException
      */
     public MethodScope(ArrayList<String> arrayOfLines) throws IllegalScopeException {
+        super();
         try{
-            scopeLinesArray = arrayOfLines;
+            if (!arrayOfLines.isEmpty()){
+                scopeLinesArray.addAll(arrayOfLines);
+            }
             fatherScope=null;
             fatherMethod=this;
             generateArgs(arrayOfLines.get(0));
@@ -69,13 +72,6 @@ public class MethodScope extends Scope {
 //declaration), but every method using it (in an assignment, as an argument to a method call)
 //must first assign a value to the global variable itself (even if it was assigned a value in some
 //other method).
-
-
-    //TODO tommorrow thursday:
-    //- support the thing with non initialized global variables
-    //- the read the PDF again to encounter new problems we have'nt solved
-    //- work with the school solution
-    //- work with the tester
 
 
     /**
@@ -134,12 +130,12 @@ public class MethodScope extends Scope {
             }
 //        }
     }
-    //todo WHAT
+    @Override
     /**
      *
      * @throws IllegalCodeException
      */
-    public void methodValidityManager() throws IllegalCodeException {
+    public void scopeValidityManager() throws IllegalCodeException {
         upperScopeVariables = Sjavac.globalVariablesArray;
         if (!methodValidityChecker()){
             throw new IllegalScopeException();
@@ -166,6 +162,7 @@ public class MethodScope extends Scope {
             throw new IllegalScopeException();
         }
     }
+
 
     /**
      *  method name getter
