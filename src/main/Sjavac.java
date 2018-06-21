@@ -1,9 +1,8 @@
 package main;
 
-import FileParser.FileParser;
 import Scope.IllegalScopeException;
+import FileParser.FileParser;
 import Scope.MethodScope;
-import Types.IllegalTypeException;
 import Types.Variable;
 
 import java.io.BufferedReader;
@@ -44,7 +43,6 @@ public class Sjavac {
             "(int|String|double|Char|boolean)\\s+(\\w+)\\s*)*[)](\\{)$");
     private static final Pattern END_OF_LINE_PATTERN =Pattern.compile("(\\{)|(^\\s*}\\s*$)|(;)");
     private static final Pattern COMMENT_PATTERN =Pattern.compile("[/]{2}");
-    private static final Pattern EMPTY_LINE_PATTERN = Pattern.compile("\\s");
 
 
 
@@ -56,8 +54,7 @@ public class Sjavac {
     private Sjavac() throws IllegalCodeException {
 
         try {
-            //TODO check if need to nullify the globalVariablesArray
-//            lineReader = new BufferedReader(new FileReader(new File(arg)));
+//          lineReader = new BufferedReader(new FileReader(new File(arg)));
             upperScopeFactory();
             methodInitializer();
         } catch (IllegalCodeException e){
@@ -67,7 +64,6 @@ public class Sjavac {
 
     /*Methods*/
 
-    //TODO check for method calls outside of a scope
 
     private void upperScopeFactory() throws IllegalCodeException{
         ArrayList<String> methodLinesArray = new ArrayList<>();
@@ -78,7 +74,6 @@ public class Sjavac {
                     globalVariableMatcher = VARIABLE_DECLARATION_PATTERN.matcher(line),
                     commentMatcher = COMMENT_PATTERN.matcher(line),
                     endMatcher = END_OF_LINE_PATTERN.matcher(line),
-                    emptyLineMatcher = EMPTY_LINE_PATTERN.matcher(line),
                     methodsMatcher = METHOD_DECLARATION_PATTERN.matcher(line);
             if (commentMatcher.find()) {
                 if (!line.startsWith("//")) {
@@ -92,7 +87,6 @@ public class Sjavac {
                         METHOD_SCOPE_FLAG = true;
                     } else if (globalVariableMatcher.find()){
                         globalVariablesArray.addAll(Variable.variableInstasiation(line, true));
-//                    } else if (!emptyLineMatcher.matches()){
                     } else if (!line.equals("")){
                         throw new IllegalCodeException();
                     }
@@ -154,8 +148,6 @@ public class Sjavac {
             System.err.println(e.getMessage());
             System.out.println("2");
         }
-
     }
 }
-
 

@@ -7,7 +7,8 @@ import java.util.ArrayList;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-import static Scope.MethodScope.METHOD_CALL_PATTERN;
+import static main.Sjavac.CLOSING_BRACKET_PATTERN;
+import static main.Sjavac.OPENING_BRACKET_PATTERN;
 
 public class ConditionScope extends Scope{
 
@@ -21,11 +22,11 @@ public class ConditionScope extends Scope{
         scopeLinesArray = arrayOfLines;
         fatherScope = fatherScopeInput;
         fatherMethod = fatherMethodInput;
+        appendFatherScopeVariables();
     }
 
     public void conditionValidityManager() throws IllegalCodeException {
         if (conditionValidityChecker()){
-            appendFatherScopeVariables();
             subScopesFactory(this, fatherMethod);
         } else {
             throw new IllegalScopeException();        }
@@ -34,30 +35,30 @@ public class ConditionScope extends Scope{
 
     private void appendFatherScopeVariables(){
         upperScopeVariables.addAll(fatherScope.localVariables);
-        upperScopeVariables.addAll(fatherMethod.methodParametersArray);
     }
 
 
-    private boolean conditionValidityChecker() throws IllegalScopeException {
-        //TODO check that conditions are valid, used parameters are valid,
+    private boolean conditionValidityChecker() throws IllegalScopeException, IllegalTypeException {
         for (String line: scopeLinesArray){
-            Matcher methodCallMatcher = METHOD_CALL_PATTERN.matcher(line);
+            Matcher closingMatcher = CLOSING_BRACKET_PATTERN.matcher(line),
+                    openingMatcher = OPENING_BRACKET_PATTERN.matcher(line);
             if (line.equals(scopeLinesArray.get(0))){
                 Matcher conditionMatcher = BOOLEAN_PATTERN.matcher(line);
-                if (!conditionMatcher.find()){
+                if (!openingMatcher.find()){
+                    throw new IllegalScopeException("ERROR: wrong brackets in condition scope");
+                } if (!conditionMatcher.find()){
                     throw new IllegalScopeException("ERROR: wrong boolean condition in for/while loop");
                 }
-            } else if (methodCallMatcher.find()){
-                fatherMethod.methodCallValidator(line, methodCallMatcher);
+            } else if (line.equals(scopeLinesArray.get(scopeLinesArray.size()-1))){
+                if (!closingMatcher.matches()){
+                    throw new IllegalScopeException("ERROR: wrong brackets in condition scope");
+                }
+            } else {
+                scopeValidityHelper(line, this);
             }
         }
         return true;
     }
 
-
-
 }
-//TODO note to self- because the method instance has all the method and the condition scope instance has only
-//the relevant scope, the validity check of all of the method's structure will be done in the method scope's
-//class, while in the condition scope class will be done only the validity of variable usage and the condition's
-//validity
+

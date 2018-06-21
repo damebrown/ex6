@@ -23,13 +23,18 @@ public abstract class Scope {
     /* The Scope local variables */
     protected ArrayList<Variable> localVariables;
     /*an array of all reachable variables*/
-    protected ArrayList<ArrayList<Variable>> reachableVariables;
+    public ArrayList<ArrayList<Variable>> reachableVariables;
     /* The Scope's upper scope */
     protected Scope fatherScope;
     /*The Scope's method */
     public MethodScope fatherMethod;
 
-    public static final Pattern SINGLE_PARAMETER_PATTERN = Pattern.compile("\\w+");
+    //public static final Pattern SINGLE_PARAMETER_PATTERN = Pattern.compile("\\w+");
+
+    static final Pattern METHOD_CALL_PATTERN = Pattern.compile("([a-zA-Z]\\w*){1}[(](\\w*)[)][;]");
+
+    static Pattern ASSIGNMENT_PATTERN = Pattern.compile("^\\s*\\b\\w*\\b\\s*=\\s*(\\b\\w*\\b|[-]?\\d+" +
+            "(\\.?\\d+)|(\"[^\"]*\")|(\'.\'))\\s*;\\s*$");
 
 
     public Scope(){
@@ -74,13 +79,30 @@ public abstract class Scope {
     }
 
 
-    //TODO check that method calls inside a scope are valid
+
+    protected void scopeValidityHelper(String line, Scope scope) throws IllegalScopeException,
+            IllegalTypeException {
+        Matcher methodCallMatcher = METHOD_CALL_PATTERN.matcher(line),
+                assignmentMatcher = ASSIGNMENT_PATTERN.matcher(line);
+        //checking for method calls validity
+        if (methodCallMatcher.find()){
+            if (!methodCallValidator(line, methodCallMatcher)){
+                throw new IllegalScopeException("ERROR: malformed call to method in "+scope.fatherMethod.
+                        getMethodName());
+            }
+        }
+        //checking for variable assignment validity
+        else if (assignmentMatcher.find()){
+            assignmentManager(line,scope);
+        }
+    }
+
 
     /**
      * makes all the scopes instances inside the received upmost scope instance
      * @param upmostScope the scope to search scopes in
      */
-    protected void subScopesFactory(Scope upmostScope, MethodScope method) throws IllegalCodeException {
+    void subScopesFactory(Scope upmostScope, MethodScope method) throws IllegalCodeException {
         Scope fatherScope=upmostScope, currentScope=null;
         for (String line : scopeLinesArray){
             Matcher closingMatcher = CLOSING_BRACKET_PATTERN.matcher(line),
@@ -93,6 +115,7 @@ public abstract class Scope {
                         ArrayList<String> subScopeLinesArray = new ArrayList<>();
                         subScopeLinesArray.add(line);
                         currentScope = new ConditionScope(subScopeLinesArray, fatherScope, method);
+                        method.subScopesArray.add(currentScope);
                     }
                 }
             } else {
@@ -106,6 +129,7 @@ public abstract class Scope {
                     subScopeLinesArray.add(line);
                     fatherScope = currentScope;
                     currentScope = new ConditionScope(subScopeLinesArray, fatherScope, method);
+                    method.subScopesArray.add(currentScope);
                 } else {
                     currentScope.scopeLinesArray.add(line);
                 }
@@ -115,7 +139,8 @@ public abstract class Scope {
         }
     }
 
-    boolean methodCallValidator(String line, Matcher methodCallMatcher) throws IllegalScopeException {
+    boolean methodCallValidator(String line, Matcher methodCallMatcher) throws IllegalScopeException,
+            IndexOutOfBoundsException {
         boolean nameFlag = false, existenceFlag = false;
         String foundMethodName = line.substring(methodCallMatcher.start(), methodCallMatcher.end());
         MethodScope foundMethod=null;
@@ -164,36 +189,39 @@ public abstract class Scope {
         } return existenceFlag;
     }
 
-
-    public String[] assignmentSplitter(String line){
-        return line.split("[=;]");
-    }
-
-    public boolean assignmentManager(String assignmentLine, Scope scope) throws IllegalTypeException {
+    boolean assignmentManager(String assignmentLine, Scope scope) throws IllegalTypeException {
         //TODO make sure we support (regex wise) assignment of existing variables in setValue method
         //TODO make sure that in the above mentioned check we check if the assigned variable is not null
         boolean assignedFlag = false;
         try{
-            String[] splittedAssignemnt = assignmentSplitter(assignmentLine);
-            String variableName =  splittedAssignemnt[0];
-            for (ArrayList<Variable> array : reachableVariables) {
-                if (array!=null){
-                    for (Variable localVariable : array){
-                        if (localVariable.getName().equals(variableName)){
-                            //the check if the variable is final and if the value is valid is done
-                            // in the setValue method
-                            localVariable.setValue(splittedAssignemnt[1]);
-                            //if code gets here, everything went well
-                            assignedFlag=true;
-                            return assignedFlag;
+            String[] splatAssignment = assignmentSplitter(assignmentLine);
+            for(int index=0;index<=(splatAssignment.length);index++){
+                String variableName =  splatAssignment[2*index];
+                for (ArrayList<Variable> array : reachableVariables) {
+                    if (array!=null){
+                        for (Variable localVariable : array){
+                            if (localVariable.getName().equals(variableName)){
+                                //the check if the variable is final and if the value is valid is done
+                                // in the setValue method
+                                localVariable.setValue(splatAssignment[1], variableName, this);
+                                //if code gets here, everything went well
+                                assignedFlag=true;
+                            }
                         }
                     }
                 }
             }
-        } catch (IllegalTypeException e){
+        } catch (IllegalTypeException e) {
             throw new IllegalTypeException("ERROR: assignment problem in "+scope.fatherMethod.getMethodName());
+        } catch (IndexOutOfBoundsException e){
+            throw new IndexOutOfBoundsException("ERROR: wrong variable assignment structure");
         } return assignedFlag;
     }
+
+    String[] assignmentSplitter(String line){
+        return line.split("[=;,\\s]");
+    }
+
 }
 
 

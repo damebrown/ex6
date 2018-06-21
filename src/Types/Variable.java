@@ -19,9 +19,12 @@ public abstract class Variable {
     private static final String CHAR = "char";
     private static final String BOOLEAN = "boolean";
     private static final String FINAL = "final";
-    private static final Pattern SEPARATOR_PATTERN = Pattern.compile("\\b\\w*\\b([ ]*=[ ]*((\\\"[^\"]*\\\")|([^ ,;]*)))*");
-    private static final Pattern SPLITTER_PATTERN = Pattern.compile("(\\b\\w*\\b)[ ]*=[ ]*((\\\"[^\"]*\\\")|([^ ]*))");
-    private static final Pattern NAME_PATTERN = Pattern.compile("(\\b(_\\w+|[^\\d_ ]\\w*)\\b)[ ]*(=[ ]*[^ ]*)*");
+    private static final Pattern SEPARATOR_PATTERN = Pattern.compile("\\b\\w*\\b([ ]*=[ ]*((\\\"[^\"]*\\\")" +
+            "|([^ ,;]*)))*");
+    private static final Pattern SPLITTER_PATTERN = Pattern.compile("(\\b\\w*\\b)[ ]*=[ ]*((\\\"[^\"]*\\\")" +
+            "|([^ ]*))");
+    private static final Pattern NAME_PATTERN = Pattern.compile("(\\b(_\\w+|[^\\d_ ]\\w*)\\b)[ ]*(=[ ]*" +
+            "[^ ]*)*");
     private static final Pattern DECLARATION_PATTERN = Pattern.compile(
             "^[ ]*(final\\s*)?\\b(int|String|double|char|boolean)\\b[ ]+(\\b\\w*\\b)[ ]*(=[ ]*" +
                     "(([^ \\\"]*)|(\\\"[^\\\"]*\\\")))*[ ]*(,[ ]*(\\b\\w*\\b)[ ]*" +
@@ -164,17 +167,31 @@ public abstract class Variable {
 
 
 
-    public void setValue(String assignValue) throws IllegalTypeException{
+    public void setValue(String assignValue, String variableName, Scope scope) throws IllegalTypeException{
         try {
-            String varToAssign = Variable.referenceAssign(assignValue);
-            if(!varToAssign.equals(""))
-                assignValue = varToAssign;
-            if(isValid(assignValue)) {
-                if(!this.isFinal) {
-                    this.value = assignValue;
-                } else {
-                    throw new IllegalTypeException("ERROR: Value cannot be assigned into final variable");
+            if(this.isFinal) {
+                throw new IllegalTypeException("ERROR: Value cannot be assigned into final variable");
+            } else if (nameValidator(variableName)){
+                for (ArrayList<Variable> array : scope.reachableVariables) {
+                    if (array!=null){
+                        for (Variable localVariable : array){
+                            if (localVariable.getName().equals(variableName)){
+                                //the check if the variable is final and if the value is valid is done
+                                // in the setValue method
+                                if (this.getType().equals(localVariable.getType())){
+                                    if (localVariable.value!=null){
+                                        this.value = localVariable.value;
+                                    } else {
+                                        throw new IllegalTypeException("ERROR: you tried to assign a null" +
+                                                " variable to a different variable");
+                                    }
+                                }
+                            }
+                        }
+                    }
                 }
+            } else if(isValid(assignValue)) {
+                this.value = assignValue;
             } else {
                 throw new IllegalTypeException("ERROR: Illegal type, should be "+getType()+" type value");
             }
@@ -212,25 +229,9 @@ public abstract class Variable {
         return value;
     }
 
-    protected boolean existanceValidity(String nameToCheck) throws IllegalTypeException {
-        for(Variable var : globalVariablesArray) {
-            if(var.getName().equals(nameToCheck)){
-                // case it is global and global
-                if (this.isGlobal && var.isGlobal)
-                    throw new IllegalTypeException("cannot name two globals with the same name!");
-                // case it is global and local
-                else if (!this.isGlobal && var.isGlobal )
-                    return true;
-            }
-            //todo add local and local case?
-
-            // case it is on the same scope?
-        }
-
-        return true; //todo edit
-    }
 
     protected static String referenceAssign(String variableAssignment) throws IllegalTypeException {
+        //TODO MAKE THIS WORK WITH ALL OF REACHABLE VARIABLES, NOT ONLY GLOBAL, and update exceptions here
         String newAssign = "";
         if (variableAssignment.contains("=")) {
             String[] splitLine = splitter(variableAssignment);
