@@ -47,18 +47,18 @@ public abstract class Scope {
      */
     protected void variableUpdater(){
         if (!globalVariablesArray.isEmpty()){
-            reachableVariables.add(0, globalVariablesArray);
+            reachableVariables.add(globalVariablesArray);
         } if (fatherMethod!=null){
             if(!fatherMethod.methodParametersArray.isEmpty()){
-                reachableVariables.add(1, fatherMethod.methodParametersArray);
+                reachableVariables.add(fatherMethod.methodParametersArray);
             }
         }
         if (!upperScopeVariables.equals(globalVariablesArray)){
             if (!upperScopeVariables.isEmpty()){
-                reachableVariables.add(2, upperScopeVariables);
+                reachableVariables.add(upperScopeVariables);
             }
         }if (!localVariables.isEmpty()){
-            reachableVariables.add(3, localVariables);
+            reachableVariables.add(localVariables);
         }
     }
 
@@ -114,7 +114,7 @@ public abstract class Scope {
      * makes all the scopes instances inside the received upmost scope instance
      * @param upMostScope the scope to search scopes in
      */
-    void subScopesFactory(Scope upMostScope, MethodScope method) throws IllegalCodeException {
+    void subScopesFactory(Scope upMostScope, MethodScope method) throws IllegalCodeException, IllegalTypeException {
         Scope fatherScope=upMostScope, currentScope=null;
         for (String line : scopeLinesArray){
             Matcher closingMatcher = CLOSING_BRACKET_PATTERN.matcher(line),

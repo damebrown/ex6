@@ -23,7 +23,7 @@ public class MethodScope extends Scope {
 
     public ArrayList<Variable> methodParametersArray;
 
-    public ArrayList<Scope> subScopesArray = new ArrayList<>();
+    public ArrayList<Scope> subScopesArray;
 
     private static final Pattern METHOD_NAME_PATTERN = Pattern.compile("(\\b\\s+[a-zA-Z]\\w*){1}");
 
@@ -47,12 +47,14 @@ public class MethodScope extends Scope {
      * @param arrayOfLines the method scope lines
      * @throws IllegalScopeException
      */
-    public MethodScope(ArrayList<String> arrayOfLines) throws IllegalScopeException {
+    public MethodScope(ArrayList<String> arrayOfLines) throws IllegalScopeException, IllegalTypeException {
         super();
         try{
             if (!arrayOfLines.isEmpty()){
                 scopeLinesArray.addAll(arrayOfLines);
             }
+            subScopesArray = new ArrayList<>();
+            methodParametersArray = new ArrayList<>();
             fatherScope=null;
             fatherMethod=this;
             generateArgs(arrayOfLines.get(0));
