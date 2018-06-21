@@ -20,7 +20,7 @@ class StringVariable extends Variable {
             if (isValid(toAssign[1])) {
                 this.value = toAssign[1];
             } else
-                throw new IllegalTypeException();
+                throw new IllegalTypeException("ERROR: wrong "+getName()+" variable assignment");
         } else {
             this.name = variableString;
         }

@@ -24,7 +24,7 @@ public class CharVariable extends Variable {
                 this.value = toAssign[1];
             }
             else
-                throw new IllegalTypeException();
+                throw new IllegalTypeException("ERROR: wrong "+getName()+" variable assignment");
         }
         else{
             this.name = variableString;
