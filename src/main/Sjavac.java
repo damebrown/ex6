@@ -1,12 +1,12 @@
 package main;
 
+import FileParser.FileParser;
 import Scope.IllegalScopeException;
 import Scope.MethodScope;
+import Types.IllegalTypeException;
 import Types.Variable;
 
 import java.io.BufferedReader;
-import java.io.File;
-import java.io.FileReader;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.regex.*;
@@ -29,7 +29,7 @@ public class Sjavac {
 
     public static ArrayList<Variable> globalVariablesArray = new ArrayList<>();
 
-    private ArrayList<String> linesArray = new ArrayList<>();
+    private static  ArrayList<String> linesArray ;
 
     public static ArrayList<MethodScope> methodsArray = new ArrayList<>();
 
@@ -52,18 +52,16 @@ public class Sjavac {
 
     /**
      * main method
-     * @param arg file's path
      */
-    private Sjavac(String arg) throws IOException, IllegalCodeException {
+    private Sjavac() throws IllegalCodeException {
+
         try {
             //TODO check if need to nullify the globalVariablesArray
-            lineReader = new BufferedReader(new FileReader(new File(arg)));
+//            lineReader = new BufferedReader(new FileReader(new File(arg)));
             upperScopeFactory();
             methodInitializer();
-        } catch (IOException e) {
-            throw new IOException();
         } catch (IllegalCodeException e){
-            throw new IllegalCodeException();
+            throw e;
         }
     }
 
@@ -71,9 +69,9 @@ public class Sjavac {
 
     //TODO check for method calls outside of a scope
 
-    private void upperScopeFactory() throws IOException, IllegalCodeException{
+    private void upperScopeFactory() throws IllegalCodeException{
         ArrayList<String> methodLinesArray = new ArrayList<>();
-        fileParser();
+//        fileParser();
         for (String line : linesArray){
             Matcher closingMatcher = CLOSING_BRACKET_PATTERN.matcher(line),
                     openingMatcher = OPENING_BRACKET_PATTERN.matcher(line),
@@ -132,18 +130,32 @@ public class Sjavac {
 
     private void fileParser() throws IOException{
         int linesCounter=0;
+
         for (String line = lineReader.readLine(); line!=null; line = lineReader.readLine()){
             linesArray.add(linesCounter, line);
             linesCounter++;
         }
     }
 
-    public static void main(String[] args) throws IOException, IllegalCodeException {
-        for (String filePath: args){
-            new Sjavac(filePath);
+    public static void main(String[] args){
+        try{
+            //todo what if file is empty?
+            //parse file
+             linesArray = FileParser.parseFile(args);
+            //call Sjavac
+
+              Sjavac runner =  new Sjavac();
+              System.out.println("0");
+
+        }catch (IllegalCodeException ice){
+            System.err.println(ice.getMessage());
+            System.out.println("1");
+        }catch (IOException e){
+            System.err.println(e.getMessage());
+            System.out.println("2");
         }
+
     }
 }
 
 
-//TODO make variable classes be able to differentiate between valid and invalid data assignment
