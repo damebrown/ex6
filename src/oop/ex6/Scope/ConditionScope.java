@@ -17,9 +17,9 @@ public class ConditionScope extends Scope{
 
     private MethodScope fatherMethod;
 
-    private static Pattern BOOLEAN_PATTERN = Pattern.compile("^\\s*(if|while)\\s*[(]\\s*(true|false|\\b\\w*" +
-            "\\b|[-]?\\d+(\\.?\\d+)*)(\\s*(((\\|\\|)|(&&))\\s*(\\b\\w*\\b|[-]?\\d+(\\.?\\d+)*)\\s*)*)" +
-            "\\s*[)][{]\\s*");
+    private static Pattern BOOLEAN_PATTERN = Pattern.compile("^\\s*(if|while)\\s*[(]\\s*(true|false|\\w*" +
+            "|[-]?\\d+(\\.?\\d+)*)\\s*(\\s*(((\\|){2}|(&&))\\s*(\\b\\w*\\b|[-]?\\d+(\\.?\\d+)*)\\s*)*)" +
+            "\\s*[)]\\s*[{]\\s*");
 
     /**
      * condition scope constructor
@@ -27,13 +27,22 @@ public class ConditionScope extends Scope{
      * @param fatherScopeInput the parent scope
      * @param fatherMethodInput the father method
      */
-    ConditionScope(ArrayList<String> arrayOfLines, Scope fatherScopeInput, MethodScope fatherMethodInput){
+    ConditionScope(ArrayList<String> arrayOfLines, Scope fatherScopeInput, MethodScope fatherMethodInput) throws IllegalScopeException {
         super();
         scopeLinesArray = arrayOfLines;
         fatherScope = fatherScopeInput;
         fatherMethod = fatherMethodInput;
         appendFatherScopeVariables();
         this.variableUpdater();
+        this.checkCondition();
+    }
+
+    private void checkCondition() throws IllegalScopeException {
+        String line = this.scopeLinesArray.get(0);
+        Matcher conditionMatcher = BOOLEAN_PATTERN.matcher(line);
+        if (!conditionMatcher.find()){
+            throw new IllegalScopeException("ERROR: wrong brackets in condition scope");
+        }
     }
 
 

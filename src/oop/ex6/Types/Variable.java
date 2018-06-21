@@ -25,10 +25,15 @@ public abstract class Variable {
             "|([^ ]*))");
     private static final Pattern NAME_PATTERN = Pattern.compile("(\\b(_\\w+|[^\\d_ ]\\w*)\\b)[ ]*(=[ ]*" +
             "[^ ]*)*");
-    private static final Pattern DECLARATION_PATTERN = Pattern.compile(
-            "^[ ]*(final\\s*)?\\b(int|String|double|char|boolean)\\b[ ]+(\\b\\w*\\b)[ ]*(=[ ]*" +
-                    "(([^ \\\"]*)|(\\\"[^\\\"]*\\\")))*[ ]*(,[ ]*(\\b\\w*\\b)[ ]*" +
-                    "(=[ ]*(([^ \"]*)|(\\\"[^\\\"]*\\\")))*)*[ ]*;?[ ]*$");
+    private static final Pattern DECLARATION_PATTERN = Pattern.compile("^\\s*(final\\s+)?" +
+            "(int|String|double|char|boolean)\\s+(\\w*)\\s*(=\\s*(([^\\\"]*)|(\\\"[^\\\"]*\\\")))*\\s*" +
+            "(,\\s*(\\w*)\\s*(=\\s*(([^ \"]*)|(\\\"[^\\\"]*\\\")))*)*\\s*;?\\s*$");
+
+
+
+//            "^[ ]*(final\\s*)?\\b(int|String|double|char|boolean)\\b[ ]+(\\b\\w*\\b)[ ]*(=[ ]*" +
+//                    "(([^ \\\"]*)|(\\\"[^\\\"]*\\\")))*[ ]*(,[ ]*(\\b\\w*\\b)[ ]*" +
+//                    "(=[ ]*(([^ \"]*)|(\\\"[^\\\"]*\\\")))*)*[ ]*;?[ ]*$");
 
 
     /* Data members */
