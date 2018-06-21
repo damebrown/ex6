@@ -12,6 +12,9 @@ import java.util.regex.Pattern;
 import static main.Sjavac.CLOSING_BRACKET_PATTERN;
 import static main.Sjavac.OPENING_BRACKET_PATTERN;
 
+/**
+ * The class represents a method scope object
+ */
 public class MethodScope extends Scope {
 
     /*Constants*/
@@ -28,7 +31,7 @@ public class MethodScope extends Scope {
     private static final Pattern CLOSING_PATTERN = Pattern.compile("\\s*(})\\s*");
 
     private static final Pattern DECLARATION_PARAMETER_PATTERN = Pattern.compile(
-            "(final\\s*)?(boolean|int|String|char|double)\\s+(\\w+)");
+            "(final\\s*)?\\s*(boolean|int|String|char|double)\\s+(\\w+)");
 
 
     //TODO is this needed?
@@ -38,9 +41,11 @@ public class MethodScope extends Scope {
 //    private static Pattern ASSIGNMENT_DECONSTRUCTION = Pattern.compile("^\\s*(\\w*)(\\s*=\\s*)(\\w*|[-]?\\d+(\\.?\\d+)|(\"[^\"]*\")|(\'.\'))(\\s*;\\s*)$");
 
 
-
-
-
+    /**
+     *  A method scope constructor
+     * @param arrayOfLines the method scope lines
+     * @throws IllegalScopeException
+     */
     public MethodScope(ArrayList<String> arrayOfLines) throws IllegalScopeException {
         try{
             scopeLinesArray = arrayOfLines;
@@ -72,7 +77,11 @@ public class MethodScope extends Scope {
     //- work with the tester
 
 
-
+    /**
+     * Verifies the method scope structure is valid
+     * @return true in case it is valid
+     * @throws IllegalCodeException throws exception in case it has a bad format
+     */
     private boolean methodValidityChecker() throws IllegalCodeException {
         subScopesFactory(this, this);
         int openingBracketCounter =0, closingBracketCounter =0;
@@ -105,22 +114,31 @@ public class MethodScope extends Scope {
         } return true;
     }
 
+    /*
+     * the method generates the parameters that are given in the method signature
+     * param declarationLine the variable declaration line
+     * throws IllegalTypeException
+     */
     private void generateArgs(String declarationLine) throws IllegalTypeException {
+        System.out.println(declarationLine);
         Matcher parameterMatcher = DECLARATION_PARAMETER_PATTERN.matcher(declarationLine);
         // verify method structure
-        if (parameterMatcher.matches()){
+//        if (parameterMatcher.find()){
             String parameterDeclaration;
             //find all occurrences
             while (parameterMatcher.find()) {
                 // while finding variables generate them and add to the method
                 parameterDeclaration = declarationLine.substring(parameterMatcher.start(),
                         parameterMatcher.end());
-                methodParametersArray.addAll(Variable.variableInstasiation(parameterDeclaration,false));
+                methodParametersArray.addAll(Variable.variableInstantiation(parameterDeclaration,false));
             }
-        }
+//        }
     }
-
-
+    //todo WHAT
+    /**
+     *
+     * @throws IllegalCodeException
+     */
     public void methodValidityManager() throws IllegalCodeException {
         upperScopeVariables = Sjavac.globalVariablesArray;
         if (!methodValidityChecker()){
@@ -128,6 +146,11 @@ public class MethodScope extends Scope {
         }
     }
 
+    /**
+     * Assign the current method it's name
+     * @param declarationLine The method declaration signature
+     * @throws IllegalScopeException
+     */
     private void methodNameAssigner(String declarationLine) throws IllegalScopeException {
         Matcher nameMatcher = METHOD_NAME_PATTERN.matcher(declarationLine);
         if (nameMatcher.find()){
@@ -137,7 +160,10 @@ public class MethodScope extends Scope {
         }
     }
 
-
+    /**
+     *  method name getter
+     * @return the method name
+     */
     public String getMethodName(){
         return methodName;
     }

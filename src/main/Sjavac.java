@@ -1,11 +1,8 @@
 package main;
 
-import Scope.IllegalScopeException;
 import FileParser.FileParser;
 import Scope.MethodScope;
 import Types.Variable;
-
-import java.io.BufferedReader;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.regex.*;
@@ -20,15 +17,15 @@ public class Sjavac {
 
     /*Constants*/
 
-    private static BufferedReader lineReader;
+//    private static BufferedReader lineReader;
 
-    private static int openingBracketCounter =0, closingBracketCounter =0;
+    private static int openingBracketCounter = 0, closingBracketCounter = 0;
 
-    private static boolean METHOD_SCOPE_FLAG=false;
+    private static boolean METHOD_SCOPE_FLAG = false;
 
     public static ArrayList<Variable> globalVariablesArray = new ArrayList<>();
 
-    private static  ArrayList<String> linesArray ;
+    private static  ArrayList<String> linesArray  = new ArrayList<>();
 
     public static ArrayList<MethodScope> methodsArray = new ArrayList<>();
 
@@ -40,21 +37,21 @@ public class Sjavac {
             "[ ]*(=[ ]*((\\b\\w*\\b)|(\\\"[^\"]*\\\")))*)*[ ]*;[ ]*$");
     private static final Pattern METHOD_DECLARATION_PATTERN = Pattern.compile("^\\s*(void)\\s+[a-zA-Z]\\w*\\s*" +
             "[(](\\s*((final\\s+)?)(int|String|double|Char|boolean)\\s+(\\w+)\\s*)?(\\s*(,)\\s*((final \\s*)?)" +
-            "(int|String|double|Char|boolean)\\s+(\\w+)\\s*)*[)](\\{)$");
+            "(int|String|double|Char|boolean)\\s+(\\w+)\\s*)*[)]\\s*(\\{)$");
     private static final Pattern END_OF_LINE_PATTERN =Pattern.compile("(\\{)|(^\\s*}\\s*$)|(;)");
     private static final Pattern COMMENT_PATTERN =Pattern.compile("[/]{2}");
 
 
 
     /*Constructor*/
-
+    //todo what is the point of using Sjavac object? - everything is static
     /**
      * main method
      */
     private Sjavac() throws IllegalCodeException {
 
         try {
-//          lineReader = new BufferedReader(new FileReader(new File(arg)));
+            //TODO check if need to nullify the globalVariablesArray
             upperScopeFactory();
             methodInitializer();
         } catch (IllegalCodeException e){
@@ -63,11 +60,14 @@ public class Sjavac {
     }
 
     /*Methods*/
-
-
+    // todo - move into Factory class?
+    /*
+     * the method generates the global variable, and method scope blocks
+     * @throws IllegalCodeException
+     */
     private void upperScopeFactory() throws IllegalCodeException{
         ArrayList<String> methodLinesArray = new ArrayList<>();
-//        fileParser();
+
         for (String line : linesArray){
             Matcher closingMatcher = CLOSING_BRACKET_PATTERN.matcher(line),
                     openingMatcher = OPENING_BRACKET_PATTERN.matcher(line),
@@ -79,14 +79,15 @@ public class Sjavac {
                 if (!line.startsWith("//")) {
                     throw new IllegalCodeException();
                 } else {
-                    break;
+                    continue;
                 }
             } else {
                 } if (!METHOD_SCOPE_FLAG){
                     if (methodsMatcher.matches()) {
                         METHOD_SCOPE_FLAG = true;
+                        methodLinesArray.add(line);
                     } else if (globalVariableMatcher.find()){
-                        globalVariablesArray.addAll(Variable.variableInstasiation(line, true));
+                        globalVariablesArray.addAll(Variable.variableInstantiation(line, true));
                     } else if (!line.equals("")){
                         throw new IllegalCodeException();
                     }
@@ -110,8 +111,11 @@ public class Sjavac {
             throw new IllegalCodeException();
         }
     }
-
-
+    //todo WHAT
+    /*
+     *
+     * @throws IllegalCodeException
+     */
     private void methodInitializer() throws IllegalCodeException {
         try{
             for (MethodScope method: methodsArray){
@@ -122,15 +126,10 @@ public class Sjavac {
         }
     }
 
-    private void fileParser() throws IOException{
-        int linesCounter=0;
-
-        for (String line = lineReader.readLine(); line!=null; line = lineReader.readLine()){
-            linesArray.add(linesCounter, line);
-            linesCounter++;
-        }
-    }
-
+    /**
+     *  main method
+     * @param args io arguments
+     */
     public static void main(String[] args){
         try{
             //todo what if file is empty?
@@ -148,6 +147,8 @@ public class Sjavac {
             System.err.println(e.getMessage());
             System.out.println("2");
         }
+
     }
 }
+
 

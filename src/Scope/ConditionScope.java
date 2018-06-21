@@ -10,6 +10,9 @@ import java.util.regex.Pattern;
 import static main.Sjavac.CLOSING_BRACKET_PATTERN;
 import static main.Sjavac.OPENING_BRACKET_PATTERN;
 
+/**
+ * the class represents a conditional scope object
+ */
 public class ConditionScope extends Scope{
 
     private MethodScope fatherMethod;
@@ -18,13 +21,24 @@ public class ConditionScope extends Scope{
             "\\b|[-]?\\d+(\\.?\\d+)*)(\\s*(((\\|\\|)|(&&))\\s*(\\b\\w*\\b|[-]?\\d+(\\.?\\d+)*)\\s*)*)" +
             "\\s*[)][{]\\s*");
 
+    /**
+     * condition scope constructor
+     * @param arrayOfLines the scope lines
+     * @param fatherScopeInput the parent scope
+     * @param fatherMethodInput the father method
+     */
     ConditionScope(ArrayList<String> arrayOfLines, Scope fatherScopeInput, MethodScope fatherMethodInput){
         scopeLinesArray = arrayOfLines;
         fatherScope = fatherScopeInput;
         fatherMethod = fatherMethodInput;
         appendFatherScopeVariables();
+        this.variableUpdater();
     }
-
+    //todo what?
+    /*
+     *
+     * @throws IllegalCodeException
+     */
     public void conditionValidityManager() throws IllegalCodeException {
         if (conditionValidityChecker()){
             subScopesFactory(this, fatherMethod);
@@ -32,12 +46,19 @@ public class ConditionScope extends Scope{
             throw new IllegalScopeException();        }
     }
 
-
+    /*
+     * the method add the upper scope variables
+     */
     private void appendFatherScopeVariables(){
         upperScopeVariables.addAll(fatherScope.localVariables);
     }
 
-
+    /*
+     * the method verify a given scope structure is valid
+     * @return true if valid
+     * @throws IllegalScopeException
+     * @throws IllegalTypeException
+     */
     private boolean conditionValidityChecker() throws IllegalScopeException, IllegalTypeException {
         for (String line: scopeLinesArray){
             Matcher closingMatcher = CLOSING_BRACKET_PATTERN.matcher(line),

@@ -12,7 +12,9 @@ import java.util.regex.Pattern;
 import static main.Sjavac.*;
 
 
-
+/**
+ * The class represents an abstract scope object
+ */
 public abstract class Scope {
 
     /* Data members */
@@ -33,11 +35,17 @@ public abstract class Scope {
 
     static final Pattern METHOD_CALL_PATTERN = Pattern.compile("([a-zA-Z]\\w*){1}[(](\\w*)[)][;]");
 
-    static Pattern ASSIGNMENT_PATTERN = Pattern.compile("^\\s*\\b\\w*\\b\\s*=\\s*(\\b\\w*\\b|[-]?\\d+" +
+    static final Pattern ASSIGNMENT_PATTERN = Pattern.compile("^\\s*\\b\\w*\\b\\s*=\\s*(\\b\\w*\\b|[-]?\\d+" +
             "(\\.?\\d+)|(\"[^\"]*\")|(\'.\'))\\s*;\\s*$");
 
+        protected Scope(){
+            reachableVariables = new ArrayList<ArrayList<Variable>>();
+        }
 
-    public Scope(){
+    /**
+     *  the method update to current reachable variables scope, by adding it the upper scopes variables
+     */
+    protected void variableUpdater(){
         reachableVariables.add(0, globalVariablesArray);
         reachableVariables.add(1, fatherMethod.methodParametersArray);
         if (!upperScopeVariables.equals(globalVariablesArray)){
@@ -47,7 +55,7 @@ public abstract class Scope {
         } reachableVariables.add(0, localVariables);
     }
 
-
+    //todo WTF??
     protected void scopeVariableFactory() throws IllegalTypeException {
         int openingCounter=0, closingCounter=0;
         for (String line : scopeLinesArray){
@@ -60,7 +68,7 @@ public abstract class Scope {
                 } else if (closingMatcher.find()){
                     closingCounter++;
                 } else if ((variableDeclarationMatcher.find())&&(closingCounter!=openingCounter)){
-                    ArrayList<Variable> newVariables = Variable.variableInstasiation(line, false);
+                    ArrayList<Variable> newVariables = Variable.variableInstantiation(line, false);
                     if (localVariables.isEmpty()) {
                         localVariables.addAll(newVariables);
                     } else for (Variable variable: localVariables){
@@ -100,10 +108,10 @@ public abstract class Scope {
 
     /**
      * makes all the scopes instances inside the received upmost scope instance
-     * @param upmostScope the scope to search scopes in
+     * @param upMostScope the scope to search scopes in
      */
-    void subScopesFactory(Scope upmostScope, MethodScope method) throws IllegalCodeException {
-        Scope fatherScope=upmostScope, currentScope=null;
+    void subScopesFactory(Scope upMostScope, MethodScope method) throws IllegalCodeException {
+        Scope fatherScope=upMostScope, currentScope=null;
         for (String line : scopeLinesArray){
             Matcher closingMatcher = CLOSING_BRACKET_PATTERN.matcher(line),
                     openingMatcher = OPENING_BRACKET_PATTERN.matcher(line);
@@ -134,7 +142,7 @@ public abstract class Scope {
                     currentScope.scopeLinesArray.add(line);
                 }
             }
-        } if (currentScope!=upmostScope){
+        } if (currentScope!=upMostScope){
             throw new IllegalScopeException("ERROR: malform method structure");
         }
     }

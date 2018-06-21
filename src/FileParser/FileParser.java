@@ -1,13 +1,14 @@
 package FileParser;
 
-import main.IllegalCodeException;
-
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileReader;
 import java.io.IOException;
 import java.util.ArrayList;
 
+/**
+ * the class is in charge of parsing the file, and verify IO errors
+ */
 public class FileParser {
 
     /**

@@ -43,42 +43,61 @@ public abstract class Variable {
     public Variable(){}
 
     /**
-     * a super constructor
+     *
+     * @param variableString the variable string declaration and assignment line
+     * @param isGlobal turned on in case the variable is global
+     * @param isFinal turned on in case the variable is final
+     * @throws IllegalTypeException
      */
     public Variable(String variableString, boolean isGlobal, boolean isFinal) throws IllegalTypeException {
+        //initialize flags
         this.isGlobal = isGlobal;
         this.isFinal = isFinal;
+        // case the declaration include assignment
         if(variableString.contains("=")){
             String[] toAssign = splitter(variableString);
-            if (globalDuplicateChecker(toAssign[0])){
-                this.name = toAssign[0];
-            } else {
+            if (globalDuplicateChecker(toAssign[0])&&this.isGlobal){ //todo changed logic
                 throw new IllegalTypeException("ERROR: unvacant global variable name assignment");
+            } else {
+                this.name = toAssign[0];
             }
             if(isValid(toAssign[1])) {
                 this.value = toAssign[1];
             } else {
                 throw new IllegalTypeException("ERROR: wrong "+getName()+" variable assignment");
             }
-        } else if (globalDuplicateChecker(variableString)){
-            this.name = variableString;
+        } else if (globalDuplicateChecker(variableString)&&this.isGlobal){ //added here demand for both global
+            throw new IllegalTypeException("ERROR: unvacant global variable name assignment"); //todo changed logic
         } else {
-            throw new IllegalTypeException("ERROR: unvacant global variable name assignment");
+            this.name = variableString;
         }
     }
 
+    /*
+     * verify there is no name duplication
+     * @param name
+     * @return true if there is duplication
+     */
     boolean globalDuplicateChecker(String name){
         for (Variable global:globalVariablesArray){
             if (global.getName().equals(name)){
-                return false;
+                return true;
             }
-        } return true;
+        } return false;
     }
 
+    /**
+     * name getter
+     * @return the var name
+     */
     public String getName(){
         return name;
     }
 
+    /**
+     * type getter
+     * @return the var type
+     */
     public String getType(){
         return type;
     }
@@ -89,7 +108,7 @@ public abstract class Variable {
      * @param isGlobal boolean, true if a global variable
      * @return arraylist of the instanced variables
      */
-    public static ArrayList<Variable> variableInstasiation(String declarationString,boolean isGlobal) throws
+    public static ArrayList<Variable> variableInstantiation(String declarationString, boolean isGlobal) throws
             IllegalTypeException {
 
         ArrayList<Variable> variablesInstances = new ArrayList<>();
@@ -166,11 +185,19 @@ public abstract class Variable {
     public abstract boolean isValid(String value);
 
 
-
-    public void setValue(String assignValue, String variableName, Scope scope) throws IllegalTypeException{
+    /**
+     * A value setter, verifies an assignment is legal and assign the value
+     * @param valueToAssign the value to assign
+     * @param variableName the variable name
+     * @param scope current scope of the variable
+     * @throws IllegalTypeException
+     */
+    public void setValue(String valueToAssign, String variableName, Scope scope) throws IllegalTypeException{
         try {
-            if(this.isFinal) {
+            //verify it is not final
+            if(this.isFinal && this.value!= null) { //todo i added case where is final but no assignment
                 throw new IllegalTypeException("ERROR: Value cannot be assigned into final variable");
+                //check if the value is a pointer to another variable
             } else if (nameValidator(variableName)){
                 for (ArrayList<Variable> array : scope.reachableVariables) {
                     if (array!=null){
@@ -189,9 +216,9 @@ public abstract class Variable {
                             }
                         }
                     }
-                }
-            } else if(isValid(assignValue)) {
-                this.value = assignValue;
+                }// in case the value isn't a pointer
+            } else if(isValid(valueToAssign)) {
+                this.value = valueToAssign;
             } else {
                 throw new IllegalTypeException("ERROR: Illegal type, should be "+getType()+" type value");
             }
@@ -224,12 +251,20 @@ public abstract class Variable {
         return declarationMatcher.find();
     }
 
-
+    /**
+     * value getter
+     * @return the variable value
+     */
     public String getValue() {
         return value;
     }
 
-
+    /**
+     *
+     * @param variableAssignment
+     * @return
+     * @throws IllegalTypeException
+     */
     protected static String referenceAssign(String variableAssignment) throws IllegalTypeException {
         //TODO MAKE THIS WORK WITH ALL OF REACHABLE VARIABLES, NOT ONLY GLOBAL, and update exceptions here
         String newAssign = "";
@@ -244,8 +279,6 @@ public abstract class Variable {
         }
 
         return newAssign;
-
-
     }
 
 
