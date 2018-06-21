@@ -27,11 +27,10 @@ public class MethodScope extends Scope {
 
     private static final Pattern CLOSING_PATTERN = Pattern.compile("\\s*(})\\s*");
 
-    private static final Pattern METHOD_CALL_PATTERN = Pattern.compile("([a-zA-Z]\\w*){1}[(](\\w*)[)][;]");
+    static final Pattern METHOD_CALL_PATTERN = Pattern.compile("([a-zA-Z]\\w*){1}[(](\\w*)[)][;]");
 
     private static final Pattern DECLARATION_PARAMETER_PATTERN = Pattern.compile(
             "(final\\s*)?(boolean|int|String|char|double)\\s+(\\w+)");
-    private static final Pattern CALL_PARAMETER_PATTERN = Pattern.compile("\\w+");
 
     private static final Pattern RAW_PARAMETERS_PATTERN = Pattern.compile("([-]?\\d+(\\.?\\d+)|(\"[^\"]*\")|(\'.\')|\\b\\w*\\b)");
 
@@ -65,8 +64,21 @@ public class MethodScope extends Scope {
 //must first assign a value to the global variable itself (even if it was assigned a value in some
 //other method).
 
+
+    //TODO tommorrow thursday:
+    //- make the method validity checker count brackets and send the checks to the subscopes for every call
+    //      or assignment etc.
+    //- make assignment work in all scopes! things to be supported:
+    //        assignment only if not final, assignment in right scopes, ...
+    //- support the thing with non initialized global variables
+    //- the read the PDF again to encounter new problems we have'nt solved
+    //- work with the school solution
+    //- work with the tester
+
+
+
     private boolean methodValidityChecker() throws IllegalCodeException {
-        subScopesFactory(this);
+        subScopesFactory(this, this);
         for (String line: scopeLinesArray){
             Matcher returnMatcher = RETURN_PATTERN.matcher(line),
                     methodCallMatcher = METHOD_CALL_PATTERN.matcher(line),
@@ -96,7 +108,6 @@ public class MethodScope extends Scope {
                 }
             }
         }
-        //parameters, validity of name,
         //todo lemamesh method-call-parameters-validity check
         return true;
     }
@@ -115,65 +126,11 @@ public class MethodScope extends Scope {
         }
     }
 
-    private boolean methodCallValidator(String line, Matcher methodCallMatcher) throws IllegalScopeException {
-        boolean nameFlag = false, existenceFlag = false;
-        String foundMethodName = line.substring(methodCallMatcher.start(), methodCallMatcher.end());
-        MethodScope foundMethod=null;
-        for (MethodScope method : Sjavac.methodsArray) {
-            if (foundMethodName.startsWith(method.getMethodName())) {
-                nameFlag = true;
-                foundMethod = method;
-            }
-        } if (nameFlag){
-            if (foundMethod.methodParametersArray.size()==0){
-                return true;
-            } else {
-                int numberOfArgs = foundMethod.methodParametersArray.size(), argsCounter=0;
-                Matcher parameterMatcher = CALL_PARAMETER_PATTERN.matcher(line);
-                while (parameterMatcher.find()) {
-                    argsCounter++;
-                    String input = line.substring(parameterMatcher.start(), parameterMatcher.end());
-                    //to check for a call with existing variables
-                    while (!existenceFlag){
-                        for (Variable variable : localVariables) {
-                            if (variable.getName().equals(input)) {
-                                existenceFlag = true;
-                                break;
-                            }
-                        } for (Variable variable : methodParametersArray) {
-                            if (variable.getName().equals(input)) {
-                                existenceFlag = true;
-                                break;
-                            }
-                        } for (Variable globalVariable: upperScopeVariables){
-                            if (globalVariable.getName().equals(input)) {
-                                existenceFlag = true;
-                                break;
-                            }
-                        }
-                        //to check for a call with non existing variables
-                        Variable suitableVariable = foundMethod.methodParametersArray.get(argsCounter - 1);
-                        if (!suitableVariable.isValid(input)){
-                            throw new IllegalScopeException("ERROR: malformed method args in "+getMethodName());
-                        } else {
-                            existenceFlag=true;
-                        }
-                    }
-                }
-                if (argsCounter > numberOfArgs) {
-                    throw new IllegalScopeException("ERROR: malformed method call in " + getMethodName());
-                }
-            }
-        } else {
-            throw new IllegalScopeException("ERROR: malformed method call in "+getMethodName());
-        } return existenceFlag;
-    }
-
 
     public void methodValidityManager() throws IllegalCodeException {
         upperScopeVariables = Sjavac.globalVariablesArray;
         if (methodValidityChecker()){
-            subScopesFactory(this);
+            //subScopesFactory(this, this);
         } else {
             throw new IllegalScopeException();
         }

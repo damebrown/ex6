@@ -22,8 +22,12 @@ public abstract class Scope {
     protected ArrayList<Variable> localVariables;
     /* The Scope's upper scope */
     protected Scope fatherScope;
+    /*The Scope's method */
+    protected MethodScope fatherMethod;
     /* the local variables of the upper scope */
     protected ArrayList<Variable> upperScopeVariables;
+
+    protected static final Pattern CALL_PARAMETER_PATTERN = Pattern.compile("\\w+");
 
 
 
@@ -68,7 +72,7 @@ public abstract class Scope {
      * makes all the scopes instances inside the received upmost scope instance
      * @param upmostScope the scope to search scopes in
      */
-    protected void subScopesFactory(Scope upmostScope) throws IllegalCodeException {
+    protected void subScopesFactory(Scope upmostScope, MethodScope method) throws IllegalCodeException {
         Scope fatherScope=upmostScope, currentScope=null;
         for (String line : scopeLinesArray){
             Matcher closingMatcher = CLOSING_BRACKET_PATTERN.matcher(line),
@@ -80,7 +84,7 @@ public abstract class Scope {
                     if (!scopeLinesArray.get(0).equals(line)){
                         ArrayList<String> subScopeLinesArray = new ArrayList<>();
                         subScopeLinesArray.add(line);
-                        currentScope = new ConditionScope(subScopeLinesArray, fatherScope);
+                        currentScope = new ConditionScope(subScopeLinesArray, fatherScope, method);
                     }
                 }
             } else {
@@ -93,7 +97,7 @@ public abstract class Scope {
                     ArrayList<String> subScopeLinesArray = new ArrayList<>();
                     subScopeLinesArray.add(line);
                     fatherScope = currentScope;
-                    currentScope = new ConditionScope(subScopeLinesArray, fatherScope);
+                    currentScope = new ConditionScope(subScopeLinesArray, fatherScope, method);
                 } else {
                     currentScope.scopeLinesArray.add(line);
                 }
@@ -101,6 +105,60 @@ public abstract class Scope {
         } if (currentScope!=upmostScope){
             throw new IllegalScopeException("ERROR: malform method structure");
         }
+    }
+
+    boolean methodCallValidator(String line, Matcher methodCallMatcher) throws IllegalScopeException {
+        boolean nameFlag = false, existenceFlag = false;
+        String foundMethodName = line.substring(methodCallMatcher.start(), methodCallMatcher.end());
+        MethodScope foundMethod=null;
+        for (MethodScope method : Sjavac.methodsArray) {
+            if (foundMethodName.startsWith(method.getMethodName())) {
+                nameFlag = true;
+                foundMethod = method;
+            }
+        } if (nameFlag){
+            if (foundMethod.methodParametersArray.size()==0){
+                return true;
+            } else {
+                int numberOfArgs = foundMethod.methodParametersArray.size(), argsCounter=0;
+                Matcher parameterMatcher = CALL_PARAMETER_PATTERN.matcher(line);
+                while (parameterMatcher.find()) {
+                    argsCounter++;
+                    String input = line.substring(parameterMatcher.start(), parameterMatcher.end());
+                    //to check for a call with existing variables
+                    while (!existenceFlag){
+                        for (Variable variable : localVariables) {
+                            if (variable.getName().equals(input)) {
+                                existenceFlag = true;
+                                break;
+                            }
+                        } for (Variable variable : foundMethod.methodParametersArray) {
+                            if (variable.getName().equals(input)) {
+                                existenceFlag = true;
+                                break;
+                            }
+                        } for (Variable globalVariable: upperScopeVariables){
+                            if (globalVariable.getName().equals(input)) {
+                                existenceFlag = true;
+                                break;
+                            }
+                        }
+                        //to check for a call with non existing variables
+                        Variable suitableVariable = foundMethod.methodParametersArray.get(argsCounter - 1);
+                        if (!suitableVariable.isValid(input)){
+                            throw new IllegalScopeException("ERROR: malformed method args in "+foundMethod.getMethodName());
+                        } else {
+                            existenceFlag=true;
+                        }
+                    }
+                }
+                if (argsCounter > numberOfArgs) {
+                    throw new IllegalScopeException("ERROR: malformed method call in " + foundMethod.getMethodName());
+                }
+            }
+        } else {
+            throw new IllegalScopeException("ERROR: malformed method call in "+foundMethod.getMethodName());
+        } return existenceFlag;
     }
 }
 
