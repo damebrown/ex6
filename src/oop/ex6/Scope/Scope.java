@@ -35,8 +35,6 @@ public abstract class Scope {
 
     static final Pattern METHOD_CALL_PATTERN = Pattern.compile("([a-zA-Z]\\w*){1}[(](\\w*)[)][;]");
 
-    static final Pattern ASSIGNMENT_PATTERN = Pattern.compile("^\\s*\\b\\w*\\b\\s*=\\s*(\\b\\w*\\b|[-]?\\d+" +
-            "(\\.?\\d+)|(\"[^\"]*\")|(\'.\'))\\s*;\\s*$");
 
         protected Scope(){
             reachableVariables = new ArrayList<ArrayList<Variable>>();
@@ -61,7 +59,9 @@ public abstract class Scope {
             Matcher closingMatcher = CLOSING_BRACKET_PATTERN.matcher(line),
                     openingMatcher = OPENING_BRACKET_PATTERN.matcher(line),
                     variableDeclarationMatcher = VARIABLE_DECLARATION_PATTERN.matcher(line);
-            if(!line.equals(scopeLinesArray.get(0))){
+            if(line.equals(scopeLinesArray.get(0))){
+                openingCounter++;
+            } else {
                 if (openingMatcher.find()){
                     openingCounter++;
                 } else if (closingMatcher.find()){
