@@ -46,6 +46,7 @@ public class MethodScope extends Scope {
         try{
             scopeLinesArray = arrayOfLines;
             fatherScope=null;
+            fatherMethod=this;
             generateArgs(arrayOfLines.get(0));
             methodNameAssigner(arrayOfLines.get(0));
             scopeVariableFactory();
@@ -108,7 +109,6 @@ public class MethodScope extends Scope {
                 }
             }
         }
-        //todo lemamesh method-call-parameters-validity check
         return true;
     }
 
@@ -130,6 +130,7 @@ public class MethodScope extends Scope {
     public void methodValidityManager() throws IllegalCodeException {
         upperScopeVariables = Sjavac.globalVariablesArray;
         if (methodValidityChecker()){
+
             //subScopesFactory(this, this);
         } else {
             throw new IllegalScopeException();

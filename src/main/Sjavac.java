@@ -54,7 +54,7 @@ public class Sjavac {
      * main method
      * @param arg file's path
      */
-    public Sjavac(String arg) throws IOException, IllegalCodeException {
+    private Sjavac(String arg) throws IOException, IllegalCodeException {
         try {
             //TODO check if need to nullify the globalVariablesArray
             lineReader = new BufferedReader(new FileReader(new File(arg)));
@@ -71,7 +71,7 @@ public class Sjavac {
 
     //TODO check for method calls outside of a scope
 
-    void upperScopeFactory() throws IOException, IllegalCodeException{
+    private void upperScopeFactory() throws IOException, IllegalCodeException{
         ArrayList<String> methodLinesArray = new ArrayList<>();
         fileParser();
         for (String line : linesArray){
@@ -94,7 +94,8 @@ public class Sjavac {
                         METHOD_SCOPE_FLAG = true;
                     } else if (globalVariableMatcher.find()){
                         globalVariablesArray.addAll(Variable.variableInstasiation(line, true));
-                    } else if (!emptyLineMatcher.matches()){
+//                    } else if (!emptyLineMatcher.matches()){
+                    } else if (!line.equals("")){
                         throw new IllegalCodeException();
                     }
                 } else {
@@ -129,14 +130,13 @@ public class Sjavac {
         }
     }
 
-    void fileParser() throws IOException{
+    private void fileParser() throws IOException{
         int linesCounter=0;
         for (String line = lineReader.readLine(); line!=null; line = lineReader.readLine()){
             linesArray.add(linesCounter, line);
             linesCounter++;
         }
     }
-
 
     public static void main(String[] args) throws IOException, IllegalCodeException {
         for (String filePath: args){

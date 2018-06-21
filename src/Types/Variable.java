@@ -1,10 +1,13 @@
 package Types;
 
 import main.Sjavac;
+import Scope.*;
 
 import java.util.*;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+
+import static main.Sjavac.globalVariablesArray;
 
 /**
  * the class represent a general variable object
@@ -27,7 +30,7 @@ public abstract class Variable {
 
     /* Data members */
 
-    protected boolean isFinal = false;
+    public boolean isFinal = false;
     protected boolean isGlobal;
     protected java.lang.String name;
     protected java.lang.String value;
@@ -39,9 +42,34 @@ public abstract class Variable {
     /**
      * a super constructor
      */
-    public Variable(boolean isGlobal, boolean isFinal) {
+    public Variable(String variableString, boolean isGlobal, boolean isFinal) throws IllegalTypeException {
         this.isGlobal = isGlobal;
         this.isFinal = isFinal;
+        if(variableString.contains("=")){
+            String[] toAssign = splitter(variableString);
+            if (globalDuplicateChecker(toAssign[0])){
+                this.name = toAssign[0];
+            } else {
+                throw new IllegalTypeException("ERROR: unvacant global variable name assignment");
+            }
+            if(isValid(toAssign[1])) {
+                this.value = toAssign[1];
+            } else {
+                throw new IllegalTypeException("ERROR: wrong "+getName()+" variable assignment");
+            }
+        } else if (globalDuplicateChecker(variableString)){
+            this.name = variableString;
+        } else {
+            throw new IllegalTypeException("ERROR: unvacant global variable name assignment");
+        }
+    }
+
+    boolean globalDuplicateChecker(String name){
+        for (Variable global:globalVariablesArray){
+            if (global.getName().equals(name)){
+                return false;
+            }
+        } return true;
     }
 
     public String getName(){
@@ -101,6 +129,8 @@ public abstract class Variable {
                 if (!existingVar.equals(""))
                     varSignature = existingVar;
 
+
+
                 // create the variable instance
                 switch (typeInput) {
                     case STRING:
@@ -133,7 +163,25 @@ public abstract class Variable {
     public abstract boolean isValid(String value);
 
 
-    public abstract void setValue(String value) throws IllegalTypeException;
+
+    public void setValue(String assignValue) throws IllegalTypeException{
+        try {
+            String varToAssign = Variable.referenceAssign(assignValue);
+            if(!varToAssign.equals(""))
+                assignValue = varToAssign;
+            if(isValid(assignValue)) {
+                if(!this.isFinal) {
+                    this.value = assignValue;
+                } else {
+                    throw new IllegalTypeException("ERROR: Value cannot be assigned into final variable");
+                }
+            } else {
+                throw new IllegalTypeException("ERROR: Illegal type, should be "+getType()+" type value");
+            }
+        } catch (IllegalTypeException e){
+            throw new IllegalTypeException("ERROR: wrong variable assignment");
+        }
+    }
 
     /*
      *  the method receives variable name and verify it is valid according to
@@ -141,10 +189,10 @@ public abstract class Variable {
      * @param name the variable name (may include assignment in the string)
      * @return true if valid, false elsewhere.
      */
-    private static boolean nameValidator(String name) {
-        Matcher m = NAME_PATTERN.matcher(name);
+    public static boolean nameValidator(String name) {
+        Matcher nameMatcher = NAME_PATTERN.matcher(name);
 
-        return m.find();
+        return nameMatcher.find();
     }
 
     /**
@@ -155,8 +203,8 @@ public abstract class Variable {
      * @return
      */
     public static boolean declarationValidator(String name) {
-        Matcher m = DECLARATION_PATTERN.matcher(name);
-        return m.find();
+        Matcher declarationMatcher = DECLARATION_PATTERN.matcher(name);
+        return declarationMatcher.find();
     }
 
 
@@ -165,7 +213,7 @@ public abstract class Variable {
     }
 
     protected boolean existanceValidity(String nameToCheck) throws IllegalTypeException {
-        for(Variable var : Sjavac.globalVariablesArray) {
+        for(Variable var : globalVariablesArray) {
             if(var.getName().equals(nameToCheck)){
                 // case it is global and global
                 if (this.isGlobal && var.isGlobal)
@@ -187,7 +235,7 @@ public abstract class Variable {
         if (variableAssignment.contains("=")) {
             String[] splitLine = splitter(variableAssignment);
 
-            for (Variable var : Sjavac.globalVariablesArray) {
+            for (Variable var : globalVariablesArray) {
                 if (var.getName().equals(splitLine[1])) {
                     newAssign = splitLine[0] + "=" + var.getValue();
                 }
@@ -227,14 +275,14 @@ public abstract class Variable {
      * @return
      */
     protected static String[] splitter(String variableWithAssign){
-        Matcher m = SPLITTER_PATTERN.matcher(variableWithAssign);
+        Matcher splitterMatcher = SPLITTER_PATTERN.matcher(variableWithAssign);
 
         String[] splitted = null;
         splitted = new String[2];
 
-        if(m.find()){
-            splitted[0] = m.group(1);
-            splitted[1] = m.group(2);
+        if(splitterMatcher.find()){
+            splitted[0] = splitterMatcher.group(1);
+            splitted[1] = splitterMatcher.group(2);
         }
         return splitted;
     }

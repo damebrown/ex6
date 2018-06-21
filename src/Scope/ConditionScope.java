@@ -34,6 +34,7 @@ public class ConditionScope extends Scope{
 
     private void appendFatherScopeVariables(){
         upperScopeVariables.addAll(fatherScope.localVariables);
+        upperScopeVariables.addAll(fatherMethod.methodParametersArray);
     }
 
 
