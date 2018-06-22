@@ -34,13 +34,14 @@ public class MethodScope extends Scope {
     private static final Pattern DECLARATION_PARAMETER_PATTERN = Pattern.compile(
             "(final\\s*)?\\s*(boolean|int|String|char|double)\\s+(\\w+)");
 
+//TODO IMPORTANT!
+// In a case of an un-initialized global variable (meaning it is not assigned a value anywhere
+//outside a method), all methods may refer to it (regardless of their location in relation to its
+//declaration), but every method using it (in an assignment, as an argument to a method call)
+//must first assign a value to the global variable itself (even if it was assigned a value in some
+//other method).
 
-    //TODO is this needed?
-//    private static final Pattern RAW_PARAMETERS_PATTERN = Pattern.compile("([-]?\\d+(\\.?\\d+)|(\"[^\"]*\")" +
-//            "|(\'.\')|\\b\\w*\\b)");
-//
-//    private static Pattern ASSIGNMENT_DECONSTRUCTION = Pattern.compile("^\\s*(\\w*)(\\s*=\\s*)(\\w*|[-]?\\d+(\\.?\\d+)|(\"[^\"]*\")|(\'.\'))(\\s*;\\s*)$");
-
+    /*CONSTRUCTOR****/
 
     /**
      *  A method scope constructor
@@ -60,7 +61,6 @@ public class MethodScope extends Scope {
             this.variableUpdater();
             generateArgs(arrayOfLines.get(0));
             methodNameAssigner(arrayOfLines.get(0));
-            scopeVariableFactory();
         } catch (IllegalScopeException e){
             throw new IllegalScopeException("ERROR: something with a method is wrong");
         } catch (IllegalTypeException e) {
@@ -68,14 +68,7 @@ public class MethodScope extends Scope {
         }
     }
 
-
-//TODO IMPORTANT!
-// In a case of an un-initialized global variable (meaning it is not assigned a value anywhere
-//outside a method), all methods may refer to it (regardless of their location in relation to its
-//declaration), but every method using it (in an assignment, as an argument to a method call)
-//must first assign a value to the global variable itself (even if it was assigned a value in some
-//other method).
-
+    /*METHODS****/
 
     /**
      * Verifies the method scope structure is valid
@@ -122,24 +115,22 @@ public class MethodScope extends Scope {
     private void generateArgs(String declarationLine) throws IllegalTypeException {
         Matcher parameterMatcher = DECLARATION_PARAMETER_PATTERN.matcher(declarationLine);
         // verify method structure
-//        if (parameterMatcher.find()){
-            String parameterDeclaration;
-            //find all occurrences
-            while (parameterMatcher.find()) {
-                // while finding variables generate them and add to the method
-                parameterDeclaration = declarationLine.substring(parameterMatcher.start(),
-                        parameterMatcher.end());
-                methodParametersArray.addAll(Variable.variableInstantiation(parameterDeclaration,false));
-            }
-//        }
+        String parameterDeclaration;
+        //find all occurrences
+        while (parameterMatcher.find()) {
+            // while finding variables generate them and add to the method
+            parameterDeclaration = declarationLine.substring(parameterMatcher.start(), parameterMatcher.end());
+            methodParametersArray.addAll(Variable.variableInstantiation(parameterDeclaration,false));
+        }
     }
+
+
     @Override
     /**
-     *
+     * overrides the scopeValidityManager in Scope. validates the validity of the scope
      * @throws IllegalCodeException
      */
     public void scopeValidityManager() throws IllegalCodeException {
-        upperScopeVariables = Sjavac.globalVariablesArray;
         if (!methodValidityChecker()){
             throw new IllegalScopeException();
         }
@@ -165,7 +156,6 @@ public class MethodScope extends Scope {
             throw new IllegalScopeException();
         }
     }
-
 
     /**
      *  method name getter

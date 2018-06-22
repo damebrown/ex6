@@ -1,7 +1,9 @@
 package oop.ex6.main;
 
 import oop.ex6.FileParser.FileParser;
+import oop.ex6.Scope.ConditionScope;
 import oop.ex6.Scope.MethodScope;
+import oop.ex6.Scope.Scope;
 import oop.ex6.Types.Variable;
 import java.io.IOException;
 import java.util.ArrayList;
@@ -40,7 +42,6 @@ public class Sjavac {
             "(int|String|double|char|boolean)\\s+(.)\\s*)*[\\s*)]\\s*(\\{)$");
     private static final Pattern END_OF_LINE_PATTERN =Pattern.compile("(\\{$)|(^\\s*}\\s*$)|(;$)");
     private static final Pattern COMMENT_PATTERN =Pattern.compile("[/]{2}");
-    private static final Pattern EMPTY_LINE_PATTERN = Pattern.compile("\\s*");
     public static final Pattern ASSIGNMENT_PATTERN = Pattern.compile("^\\s*\\b\\w*\\b\\s*=\\s*(\\b\\w*\\b|[-]?\\d+" +
             "(\\.?\\d+)|(\"[^\"]*\")|(\'.\'))\\s*;\\s*$");
 
@@ -89,7 +90,6 @@ public class Sjavac {
         for (String line : linesArray){
             Matcher commentMatcher = COMMENT_PATTERN.matcher(line),
                     closingMatcher = CLOSING_BRACKET_PATTERN.matcher(line),
-                    //emptyLineMatcher = EMPTY_LINE_PATTERN.matcher(line),
                     openingMatcher = OPENING_BRACKET_PATTERN.matcher(line);
             if (commentMatcher.find()) {
                 if (!line.startsWith("//")) {
@@ -113,12 +113,10 @@ public class Sjavac {
                 } else {
                     Matcher endMatcher = END_OF_LINE_PATTERN.matcher(line);
                     if (!endMatcher.find()){
-//                        if (!emptyLineMatcher.matches()){
                         if (!line.equals("")){
                             throw new IllegalCodeException();
                         }
                     }
-//                    if (!emptyLineMatcher.matches()){
                     if (!line.equals("")){
                         methodLinesArray.add(line);
                     }
@@ -133,7 +131,8 @@ public class Sjavac {
                         METHOD_SCOPE_FLAG=false;
                     }
                 }
-        } if (closingBracketCounter != openingBracketCounter){
+        }
+        if (closingBracketCounter != openingBracketCounter){
             throw new IllegalCodeException();
         }
     }
@@ -147,6 +146,12 @@ public class Sjavac {
         try{
             for (MethodScope method: methodsArray){
                 method.scopeValidityManager();
+                if (!method.subScopesArray.isEmpty()){
+                    for (Scope subscope : method.subScopesArray){
+                        subscope.scopeValidityManager();
+                    }
+                }
+
             }
         } catch (IllegalCodeException e){
             throw new IllegalCodeException();

@@ -187,7 +187,7 @@ public abstract class Variable {
     public void setValue(String valueToAssign, String variableName, Scope scope) throws IllegalTypeException{
         try {
             //verify it is not final
-            if(this.isFinal && this.value!= null) { //todo i added case where is final but no assignment
+            if(this.isFinal) { //todo i added case where is final but no assignment
                 throw new IllegalTypeException("ERROR: Value cannot be assigned into final variable");
                 //check if the value is a pointer to another variable
             } else if (nameValidator(variableName)){

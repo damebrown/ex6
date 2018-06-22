@@ -10,6 +10,7 @@ import java.util.regex.Pattern;
 
 import static oop.ex6.main.Sjavac.CLOSING_BRACKET_PATTERN;
 import static oop.ex6.main.Sjavac.OPENING_BRACKET_PATTERN;
+import static oop.ex6.main.Sjavac.VARIABLE_DECLARATION_PATTERN;
 
 /**
  * the class represents a conditional scope object
@@ -41,6 +42,7 @@ public class ConditionScope extends Scope{
         this.checkCondition();
     }
 
+
     private void checkCondition() throws IllegalScopeException {
         String line = this.scopeLinesArray.get(0);
         Matcher conditionMatcher = BOOLEAN_PATTERN.matcher(line);
@@ -57,8 +59,9 @@ public class ConditionScope extends Scope{
      * the method add the upper scope variables
      */
     private void appendFatherScopeVariables(){
-        if (!fatherScope.localVariables.isEmpty())
-            upperScopeVariables.addAll(fatherScope.localVariables);
+        if (!fatherScope.upperScopeVariables.isEmpty()){
+            upperScopeVariables.addAll(fatherScope.upperScopeVariables);
+        }
     }
 
     @Override
@@ -67,11 +70,9 @@ public class ConditionScope extends Scope{
      * @throws IllegalCodeException
      */
     public void scopeValidityManager() throws IllegalCodeException {
-        if (conditionValidityChecker()){
-            subScopesFactory(this, fatherMethod);
-        } else {
-            throw new IllegalScopeException();
-        }
+            if (!conditionValidityChecker()){
+                throw new IllegalScopeException();
+            }
     }
 
     /*
@@ -119,19 +120,15 @@ public class ConditionScope extends Scope{
         while (booleanMatcher.find()) {
             currentCond = conditionSignature.substring(booleanMatcher.start(), booleanMatcher.end());
             Matcher digitMatcher = DIGIT_PATTERN.matcher(currentCond);
-
-
             if (!currentCond.equals("") && !currentCond.contains("if") && !currentCond.contains("while")) {
-
                 //true or false or valid digit
-                if (currentCond.equals("true") || currentCond.equals("false") || digitMatcher.find())
+                if (currentCond.equals("true") || currentCond.equals("false") || digitMatcher.find()) {
                     continue;
-
+                }
                 //case it is an assignment
                 if (Variable.nameValidator(currentCond)) {
                     // run over reachable scopes (from the most specific one)
                     if (upperScopeVariables != null && !upperScopeVariables.isEmpty()) {
-
                         for (Variable var : upperScopeVariables) {
                             if (var.getName().equals(currentCond)) {
                                 if (var.getValue() != null) {

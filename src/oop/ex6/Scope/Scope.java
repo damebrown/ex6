@@ -30,19 +30,22 @@ public abstract class Scope {
     protected Scope fatherScope;
     /*The oop.ex6.Types.Scope's method */
     public MethodScope fatherMethod;
+    /*an array of all nested variables*/
+    static private ArrayList<ArrayList<Variable>> nestedArray = new ArrayList<ArrayList<Variable>>();
 
     static final Pattern METHOD_CALL_PATTERN = Pattern.compile("(([a-zA-Z]\\w*){1})[(](\\w*)[)][;]");
     public static final Pattern ARGUMENT_PATTERN =Pattern.compile("[^,();\\s]\\w*");
-    public static final Pattern METHOD_NAME_PATTERN =Pattern.compile("(([a-zA-Z]\\w*){1})([(])");
 
-    /*Constructor*/
+    /*Constructor*****/
 
     protected Scope(){
-            scopeLinesArray = new ArrayList<>();
-            upperScopeVariables =  new ArrayList<>();
-            localVariables = new ArrayList<>();
-            reachableVariables = new ArrayList<ArrayList<Variable>>();
-        }
+        scopeLinesArray = new ArrayList<>();
+        upperScopeVariables =  new ArrayList<>();
+        localVariables = new ArrayList<>();
+        reachableVariables = new ArrayList<>();
+    }
+
+    /*Methods*****/
 
     /**
      *  the method update to current reachable variables scope, by adding it the upper scopes variables
@@ -66,6 +69,11 @@ public abstract class Scope {
         }
     }
 
+
+    /**
+     * creates all variables of the scope
+     * @throws IllegalTypeException
+     */
     protected void scopeVariableFactory() throws IllegalTypeException {
         int openingCounter=0, closingCounter=0;
         for (String line : scopeLinesArray){
@@ -79,9 +87,9 @@ public abstract class Scope {
                     openingCounter++;
                 } else if (closingMatcher.find()){
                     closingCounter++;
-                } else if ((variableDeclarationMatcher.find())&&(closingCounter!=openingCounter)){
+                } else if ((variableDeclarationMatcher.find())&&(closingCounter!=openingCounter)&&(openingCounter>1)){
                     ArrayList<Variable> newVariables = Variable.variableInstantiation(line, false);
-                    if (!localVariables.isEmpty()) {
+                    if (!localVariables.isEmpty()){
                         for (Variable newVariable : newVariables){
                             for (Variable variable : localVariables){
                                 if (newVariable.getName().equals(variable.getName())){
@@ -97,6 +105,7 @@ public abstract class Scope {
             }
         }
     }
+
 
     /**
      * this function is an aid function for the scope's validity check. it checks calls for functions and
@@ -124,20 +133,48 @@ public abstract class Scope {
         }
     }
 
+
+    /**
+     * creates all condition scopes variables nested in a scope (if any)
+     * @param line the line to check if there's a variables declaration in it
+     * @throws IllegalTypeException
+     */
+    ArrayList<Variable> variableFactory(String line) throws IllegalTypeException {
+        Matcher variableDeclarationMatcher = VARIABLE_DECLARATION_PATTERN.matcher(line);
+        if (variableDeclarationMatcher.find()){
+            return Variable.variableInstantiation(line, false);
+        } return null;
+    }
+
+
     /**
      * makes all the scopes instances inside the received upmost scope instance
      * @param upMostScope the scope to search scopes in
      */
-    void subScopesFactory(Scope upMostScope, MethodScope method) throws IllegalCodeException, IllegalTypeException {
+    void subScopesFactory(Scope upMostScope, MethodScope method) throws IllegalCodeException, IllegalScopeException {
         Scope fatherScope=upMostScope, currentScope=null;
+        //the array of all nested scope's variables
+        nestedArray = new ArrayList<>();
         //iterates over the scope's lines
         for (String line : scopeLinesArray){
             Matcher closingMatcher = CLOSING_BRACKET_PATTERN.matcher(line),
                     openingMatcher = OPENING_BRACKET_PATTERN.matcher(line);
             //if a new sub-scope wasn't yet found
             if (currentScope==null){
+                //checking for variable declaration, and creates them if such exists
+                ArrayList<Variable> variables = variableFactory(line);
+                //if a declaration exist, adds to the last array in nested
+                if ((variables != null)&&(!nestedArray.isEmpty())){
+                    (nestedArray.get(nestedArray.size()-1)).addAll(variables);
+                }
                 //if a closing bracket is found, method is done
                 if (closingMatcher.find()){
+                    if (!nestedArray.isEmpty()){
+                        //if close, add all variables in the last array in nested
+                        fatherScope.localVariables.addAll(nestedArray.get(nestedArray.size()-1));
+                        //remove last array
+                        nestedArray.remove(nestedArray.size()-1);
+                    }
                     break;
                     //else create new sub-scope
                 } else if (openingMatcher.find()){
@@ -145,19 +182,30 @@ public abstract class Scope {
                         ArrayList<String> subScopeLinesArray = new ArrayList<>();
                         subScopeLinesArray.add(line);
                         currentScope = new ConditionScope(subScopeLinesArray, fatherScope, method);
-                        method.subScopesArray.add(currentScope);
+                        if (!nestedArray.isEmpty()){
+                            currentScope.upperScopeVariables.addAll(nestedArray.get(nestedArray.size()-1));
+                            nestedArray.add(new ArrayList<>());
+                        }
                     }
                 }
             } else {
+                //checking for variable declaration, and creates them if such exists
+                ArrayList<Variable> variables = variableFactory(line);
+                //if a declaration exist, adds to the last array in nested
+                if ((variables != null)&&(!nestedArray.isEmpty())){
+                    (nestedArray.get(nestedArray.size()-1)).addAll(variables);
+                }
                 //if a closing is found, seal the existing subscope and assign the fatherscope to current
-                if (closingMatcher.find()) {
+                if (closingMatcher.find()){
+                    //if close, add all variables in the last array in nested
+                    if (!nestedArray.isEmpty()){
+                        currentScope.localVariables.addAll(nestedArray.get(nestedArray.size()-1));
+                        //remove last array
+                        nestedArray.remove(nestedArray.size()-1);
+                    }
                     if (!currentScope.equals(upMostScope)){
                         currentScope.scopeLinesArray.add(line);
-                        currentScope.scopeVariableFactory();
-                    }
-                    currentScope = fatherScope;
-                    if (!currentScope.equals(upMostScope)){
-                        currentScope.scopeValidityManager();
+                        currentScope = fatherScope;
                     }
                     //if opening is found, create new subscope
                 } else if (openingMatcher.find()){
@@ -165,9 +213,12 @@ public abstract class Scope {
                     subScopeLinesArray.add(line);
                     fatherScope = currentScope;
                     currentScope = new ConditionScope(subScopeLinesArray, fatherScope, method);
-                    method.subScopesArray.add(currentScope);
-                    //else- add the line to the current subscope's lines array
+                    if (!nestedArray.isEmpty()){
+                        currentScope.upperScopeVariables.addAll(nestedArray.get(nestedArray.size()-1));
+                        nestedArray.add(new ArrayList<>());
+                    }
                 } else {
+                    //else- add the line to the current subscope's lines array
                     if (!currentScope.equals(upMostScope)){
                         currentScope.scopeLinesArray.add(line);
                     }
@@ -182,8 +233,16 @@ public abstract class Scope {
     /*
     abstract method ran over by condition and method scopes
      */
-    abstract void scopeValidityManager() throws IllegalCodeException ;
+    public abstract void scopeValidityManager() throws IllegalCodeException ;
 
+    /**
+     * makes sure a method call is valid
+     * @param line the method call declaration line
+     * @param foundMethodName the method called
+     * @return true iff the call is valid
+     * @throws IllegalScopeException
+     * @throws IndexOutOfBoundsException
+     */
     boolean methodCallValidator(String line, String foundMethodName) throws IllegalScopeException,
             IndexOutOfBoundsException {
         boolean nameFlag = false, existenceFlag = false;
@@ -209,7 +268,7 @@ public abstract class Scope {
                         argsArray.add(arg);
                     }
                 }
-                if (!reachableVariables.isEmpty()){
+                if (!foundMethod.reachableVariables.isEmpty()){
                     for (String input:argsArray){
                         argsCounter++;
                         //to check for a call with existing variables
@@ -244,22 +303,48 @@ public abstract class Scope {
         } return existenceFlag;
     }
 
-    boolean assignmentManager(String assignmentLine, Scope scope) throws IllegalTypeException {
+    /**
+     * manages variables assignments
+     * @param assignmentLine the assignment line
+     * @param scope the scope in which there's the assignment
+     * @return true iff the assignment is valid
+     * @throws IllegalTypeException
+     */
+    boolean assignmentManager(String assignmentLine, Scope scope) throws IllegalTypeException, IndexOutOfBoundsException {
         boolean assignedFlag = false;
+        Variable getterVariable, setterVariable;
         try{
-            String[] splatAssignment = assignmentSplitter(assignmentLine);
-            for(int index=0;index<=(splatAssignment.length);index++){
-                String variableName =  splatAssignment[2*index];
+            ArrayList<String> splatAssignment = assignmentSplitter(assignmentLine);
+            for(int index=0;index<(Math.floor(splatAssignment.size()/2));index++){
+                String variableName =  splatAssignment.get(2*index);
+                String variableValue =  splatAssignment.get(2*index+1);
+                //searching for the variable there's an assignment to
                 for (ArrayList<Variable> array : reachableVariables) {
                     if (array!=null){
                         for (Variable localVariable : array){
                             if (localVariable.getName().equals(variableName)){
+                                getterVariable = localVariable;
                                 if (!array.equals(this.fatherMethod.methodParametersArray)){
-                                    //the check if the variable is final and if the value is valid is done
+                                    // the check if the variable is final and if the value is valid is done
                                     // in the setValue method
-                                    localVariable.setValue(splatAssignment[1], variableName, this);
+                                    if (Variable.nameValidator(variableValue)) {
+                                        for (ArrayList<Variable> varArray : reachableVariables) {
+                                            if (varArray!=null){
+                                                for (Variable localVar : varArray){
+                                                    if (localVar.getName().equals(variableValue)){
+                                                        //if code gets here, everything went well
+                                                        setterVariable = localVar;
+                                                        getterVariable.setValue(setterVariable.getValue(),variableName,this);
+                                                        assignedFlag=true;
+                                                    }
+                                                }
+                                            }
+                                        }
                                     //if code gets here, everything went well
-                                    assignedFlag=true;
+                                    } else {
+                                        localVariable.setValue(variableValue, variableName, this);
+                                        assignedFlag=true;
+                                    }
                                 }
                             }
                         }
@@ -268,13 +353,27 @@ public abstract class Scope {
             }
         } catch (IllegalTypeException e) {
             throw new IllegalTypeException("ERROR: assignment problem in "+scope.fatherMethod.getMethodName());
-        } catch (IndexOutOfBoundsException e){
-            throw new IndexOutOfBoundsException("ERROR: wrong variable assignment structure");
-        } return assignedFlag;
+        }
+//        catch (IndexOutOfBoundsException e){
+//            throw new IndexOutOfBoundsException("ERROR: wrong variable assignment structure");
+//        }
+        return assignedFlag;
     }
 
-    String[] assignmentSplitter(String line){
-        return line.split("[=;,\\s]");
+    /**
+     * splits variables assignemnts lines
+     * @param line the assignemnt lines
+     * @return the string array of the splat line
+     */
+    ArrayList<String> assignmentSplitter(String line){
+        String[] splat = line.split("[;,=\\s]");
+        ArrayList<String> splatArray = new ArrayList<>();
+        for (String note : splat){
+            if (!note.equals("")){
+                splatArray.add(note);
+            }
+        }
+        return splatArray;
     }
 
 }
