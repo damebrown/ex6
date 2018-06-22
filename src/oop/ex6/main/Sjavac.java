@@ -32,12 +32,12 @@ public class Sjavac {
     public static final Pattern OPENING_BRACKET_PATTERN =Pattern.compile("(\\{)");
     public static final Pattern CLOSING_BRACKET_PATTERN =Pattern.compile("(})");
     public static final Pattern VARIABLE_DECLARATION_PATTERN =
-            Pattern.compile("^\\s*(final\\s+)?(int|String|double|Char|boolean)\\s+(\\w+)\\s*(=\\s*((\\w*)" +
-                    "|(\\\"[^\\\"]*\\\")|(\\\'[^\\\']*\\\')|((-)?\\d([.]\\d)?)))*\\s*(,\\s*(\\w*)\\s*(=\\s*" +
-                    "((\\w*)|([\\\"](\\w)[\\\"]))*)*)*\\s*(;)\\s*$");
+            Pattern.compile("^\\s*(final\\s+)?(int|String|double|char|boolean)\\s+(\\w+)\\s*(=\\s*((\\w*)|" +
+                    "(\\\"[^\\\"]*\\\")|(\\'[^\\']\\')|((-)?\\d([.]\\d)?)))*\\s*" +
+                    "(,\\s*(\\w*)\\s*(=\\s*((\\w*)|(\\\"[^\\\"]*\\\")|(\\'[^\\']\\')))*)*\\s*(;)\\s*$");
     private static final Pattern METHOD_DECLARATION_PATTERN = Pattern.compile("^\\s*(void)\\s+[a-zA-Z]\\w*\\s*" +
-            "[(](\\s*((final\\s+)?)(int|String|double|Char|boolean)\\s+(\\w+)\\s*)?(\\s*(,)\\s*((final \\s*)?)" +
-            "(int|String|double|Char|boolean)\\s+(\\w+)\\s*)*[)]\\s*(\\{)$");
+            "[(](\\s*((final\\s+)?)(int|String|double|char|boolean)\\s+(\\w+)\\s*)?(\\s*(,)\\s*((final \\s*)?)" +
+            "(int|String|double|char|boolean)\\s+(\\w+)\\s*)*[)]\\s*(\\{)$");
     private static final Pattern END_OF_LINE_PATTERN =Pattern.compile("(\\{)|(^\\s*}\\s*$)|(;)");
     private static final Pattern COMMENT_PATTERN =Pattern.compile("[/]{2}");
     private static final Pattern EMPTY_LINE_PATTERN = Pattern.compile("\\s*");
@@ -62,10 +62,13 @@ public class Sjavac {
         } catch (IllegalCodeException e){
             throw e;
         } catch (IOException e){
-            throw new IOException();
+            throw new IOException(e.getMessage());
         }
     }
 
+    /*
+     *
+     */
     private void nullifyStaticVars(){
         openingBracketCounter=0;
         closingBracketCounter=0;
@@ -103,8 +106,9 @@ public class Sjavac {
                         METHOD_SCOPE_FLAG = true;
                         methodLinesArray.add(line);
                     } else if (globalVariableMatcher.find()){
-                        globalVariablesArray.addAll(Variable.variableInstantiation(line, true));
-                    } else if ((!emptyLineMatcher.matches())||((!assignmentMatcher.matches()))){
+//                        ArrayList<ArrayList<Variable>> test = null;
+                        globalVariablesArray.addAll(Variable.variableInstantiation(line, null,true));
+                    } else if ((!emptyLineMatcher.matches())&&((!assignmentMatcher.matches()))){
                         throw new IllegalCodeException();
                     }
                 } else {
