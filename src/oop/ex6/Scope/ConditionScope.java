@@ -1,6 +1,7 @@
 package oop.ex6.Scope;
 
 import oop.ex6.Types.IllegalTypeException;
+import oop.ex6.Types.Variable;
 import oop.ex6.main.IllegalCodeException;
 
 import java.util.ArrayList;
@@ -20,6 +21,9 @@ public class ConditionScope extends Scope{
     private static Pattern BOOLEAN_PATTERN = Pattern.compile("^\\s*(if|while)\\s*[(]\\s*(true|false|\\w*" +
             "|[-]?\\d+(\\.?\\d+)*)\\s*(\\s*(((\\|){2}|(&&))\\s*(\\b\\w*\\b|[-]?\\d+(\\.?\\d+)*)\\s*)*)" +
             "\\s*[)]\\s*[{]\\s*");
+
+    private final static Pattern DIGIT_PATTERN = Pattern.compile("(-?\\d+)(.\\d*)?+");
+    private final static Pattern CONTENT_PARAM = Pattern.compile("(\\b\\w*\\b|[-]?\\d+(\\.?\\d+)*)");
 
     /**
      * condition scope constructor
@@ -42,6 +46,9 @@ public class ConditionScope extends Scope{
         Matcher conditionMatcher = BOOLEAN_PATTERN.matcher(line);
         if (!conditionMatcher.find()){
             throw new IllegalScopeException("ERROR: wrong brackets in condition scope");
+        }
+        if (!conditionContentValidator(line)){
+            throw new IllegalScopeException("ERROR: condition argument is wrong");
         }
     }
 
@@ -90,6 +97,54 @@ public class ConditionScope extends Scope{
                 }
             } else {
                 scopeValidityHelper(line, this);
+            }
+        }
+        return true;
+    }
+
+
+
+    // add to condition class
+    /*
+     * the method verifies a given condition signature values are valid
+     * @param conditionSignature
+     * @return
+     * @throws IllegalScopeException
+     */
+    private boolean conditionContentValidator(String conditionSignature) throws IllegalScopeException {
+
+        Matcher booleanMatcher = CONTENT_PARAM.matcher(conditionSignature);
+        // run over conditions
+        String currentCond;
+        while (booleanMatcher.find()) {
+            currentCond = conditionSignature.substring(booleanMatcher.start(), booleanMatcher.end());
+            Matcher digitMatcher = DIGIT_PATTERN.matcher(currentCond);
+
+
+            if (!currentCond.equals("") && !currentCond.contains("if") && !currentCond.contains("while")) {
+
+                //true or false or valid digit
+                if (currentCond.equals("true") || currentCond.equals("false") || digitMatcher.find())
+                    continue;
+
+                //case it is an assignment
+                if (Variable.nameValidator(currentCond)) {
+                    // run over reachable scopes (from the most specific one)
+                    if (upperScopeVariables != null && !upperScopeVariables.isEmpty()) {
+
+                        for (Variable var : upperScopeVariables) {
+                            if (var.getName().equals(currentCond)) {
+                                if (var.getValue() != null) {
+                                    currentCond = var.getValue();
+                                    return conditionContentValidator(currentCond);
+                                } else
+                                    throw new IllegalScopeException("ERROR: the given condition variable is null");
+                            }
+                        }
+
+                    }
+                    throw new IllegalScopeException("ERROR: variable is not declared");
+                }
             }
         }
         return true;

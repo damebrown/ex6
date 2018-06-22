@@ -57,6 +57,7 @@ public class MethodScope extends Scope {
             methodParametersArray = new ArrayList<>();
             fatherScope=null;
             fatherMethod=this;
+            this.variableUpdater();
             generateArgs(arrayOfLines.get(0));
             methodNameAssigner(arrayOfLines.get(0));
             scopeVariableFactory();

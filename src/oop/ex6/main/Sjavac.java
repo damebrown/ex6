@@ -36,9 +36,9 @@ public class Sjavac {
                     "(\\\"[^\\\"]*\\\")|(\\'[^\\']\\')|((-)?\\d([.]\\d)?)))*\\s*" +
                     "(,\\s*(\\w*)\\s*(=\\s*((\\w*)|(\\\"[^\\\"]*\\\")|(\\'[^\\']\\')))*)*\\s*(;)\\s*$");
     private static final Pattern METHOD_DECLARATION_PATTERN = Pattern.compile("^\\s*(void)\\s+[a-zA-Z]\\w*\\s*" +
-            "[(](\\s*((final\\s+)?)(int|String|double|char|boolean)\\s+(\\w+)\\s*)?(\\s*(,)\\s*((final \\s*)?)" +
-            "(int|String|double|char|boolean)\\s+(\\w+)\\s*)*[)]\\s*(\\{)$");
-    private static final Pattern END_OF_LINE_PATTERN =Pattern.compile("(\\{)|(^\\s*}\\s*$)|(;)");
+            "[(\\s*](\\s*((final\\s+)?)(int|String|double|char|boolean)\\s+(.)\\s*)?(\\s*(,)\\s*((final\\s+)?)" +
+            "(int|String|double|char|boolean)\\s+(.)\\s*)*[\\s*)]\\s*(\\{)$");
+    private static final Pattern END_OF_LINE_PATTERN =Pattern.compile("(\\{$)|(^\\s*}\\s*$)|(;$)");
     private static final Pattern COMMENT_PATTERN =Pattern.compile("[/]{2}");
     private static final Pattern EMPTY_LINE_PATTERN = Pattern.compile("\\s*");
     public static final Pattern ASSIGNMENT_PATTERN = Pattern.compile("^\\s*\\b\\w*\\b\\s*=\\s*(\\b\\w*\\b|[-]?\\d+" +
@@ -89,7 +89,7 @@ public class Sjavac {
         for (String line : linesArray){
             Matcher commentMatcher = COMMENT_PATTERN.matcher(line),
                     closingMatcher = CLOSING_BRACKET_PATTERN.matcher(line),
-                    emptyLineMatcher = EMPTY_LINE_PATTERN.matcher(line),
+                    //emptyLineMatcher = EMPTY_LINE_PATTERN.matcher(line),
                     openingMatcher = OPENING_BRACKET_PATTERN.matcher(line);
             if (commentMatcher.find()) {
                 if (!line.startsWith("//")) {
@@ -106,19 +106,20 @@ public class Sjavac {
                         METHOD_SCOPE_FLAG = true;
                         methodLinesArray.add(line);
                     } else if (globalVariableMatcher.find()){
-//                        ArrayList<ArrayList<Variable>> test = null;
-                        globalVariablesArray.addAll(Variable.variableInstantiation(line, null,true));
-                    } else if ((!emptyLineMatcher.matches())&&((!assignmentMatcher.matches()))){
+                        globalVariablesArray.addAll(Variable.variableInstantiation(line, true));
+                    } else if ((!line.equals(""))&&((!assignmentMatcher.matches()))){
                         throw new IllegalCodeException();
                     }
                 } else {
                     Matcher endMatcher = END_OF_LINE_PATTERN.matcher(line);
                     if (!endMatcher.find()){
-                        if (!emptyLineMatcher.matches()){
+//                        if (!emptyLineMatcher.matches()){
+                        if (!line.equals("")){
                             throw new IllegalCodeException();
                         }
                     }
-                    if (!emptyLineMatcher.matches()){
+//                    if (!emptyLineMatcher.matches()){
+                    if (!line.equals("")){
                         methodLinesArray.add(line);
                     }
                 } if (openingMatcher.find()){
