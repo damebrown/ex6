@@ -27,7 +27,7 @@ public class MethodScope extends Scope {
 
     private static final Pattern METHOD_NAME_PATTERN = Pattern.compile("(\\b\\s+[a-zA-Z]\\w*){1}");
 
-    private static final Pattern RETURN_PATTERN = Pattern.compile("\\s*(return;)\\s*");
+    private static final Pattern RETURN_PATTERN = Pattern.compile("\\s*(return\\s*;)\\s*");
 
     private static final Pattern CLOSING_PATTERN = Pattern.compile("\\s*(})\\s*");
 

@@ -128,17 +128,20 @@ public class ConditionScope extends Scope{
                 //case it is an assignment
                 if (Variable.nameValidator(currentCond)) {
                     // run over reachable scopes (from the most specific one)
-                    if (upperScopeVariables != null && !upperScopeVariables.isEmpty()) {
-                        for (Variable var : upperScopeVariables) {
-                            if (var.getName().equals(currentCond)) {
-                                if (var.getValue() != null) {
-                                    currentCond = var.getValue();
-                                    return conditionContentValidator(currentCond);
-                                } else
-                                    throw new IllegalScopeException("ERROR: the given condition variable is null");
+                    if (!reachableVariables.isEmpty()){
+                        for (ArrayList<Variable> array : reachableVariables) {
+                            if (array!=null) {
+                                for (Variable var : array) {
+                                    if (var.getName().equals(currentCond)) {
+                                        if (var.getValue() != null) {
+                                            currentCond = var.getValue();
+                                            return conditionContentValidator(currentCond);
+                                        } else
+                                            throw new IllegalScopeException("ERROR: the given condition variable is null");
+                                    }
+                                }
                             }
                         }
-
                     }
                     throw new IllegalScopeException("ERROR: variable is not declared");
                 }

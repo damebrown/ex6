@@ -106,7 +106,6 @@ public abstract class Scope {
         }
     }
 
-
     /**
      * this function is an aid function for the scope's validity check. it checks calls for functions and
      * variable assignment lines.
@@ -132,7 +131,6 @@ public abstract class Scope {
             assignmentManager(line,scope);
         }
     }
-
 
     /**
      * creates all condition scopes variables nested in a scope (if any)
