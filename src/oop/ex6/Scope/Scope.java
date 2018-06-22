@@ -77,17 +77,18 @@ public abstract class Scope {
                     closingCounter++;
                 } else if ((variableDeclarationMatcher.find())&&(closingCounter!=openingCounter)){
                     ArrayList<Variable> newVariables = Variable.variableInstantiation(line, false);
-                    if (localVariables.isEmpty()) {
-                        localVariables.addAll(newVariables);
-                    } else for (Variable variable: localVariables){
-                        for (Variable newVariable:newVariables){
-                            if (newVariable.getType().equals(variable.getType())){
-                                throw new IllegalTypeException("ERROR: trying to assign an already existing" +
-                                        " variable");
-
+                    if (!localVariables.isEmpty()) {
+                        for (Variable variable : localVariables){
+                            for (Variable newVariable : newVariables){
+                                if (newVariable.getType().equals(variable.getType())){
+                                    throw new IllegalTypeException("ERROR: trying to assign an already existing" +
+                                            " variable");
+                                }
                             }
-                        }
-                    } localVariables.addAll(newVariables);
+                        } localVariables.addAll(newVariables);
+                    } else{
+                        localVariables.addAll(newVariables);
+                    }
                 }
             }
         }
@@ -134,8 +135,8 @@ public abstract class Scope {
                 if (closingMatcher.find()) {
                     if (!currentScope.equals(upMostScope)){
                         currentScope.scopeLinesArray.add(line);
+                        currentScope.scopeVariableFactory();
                     }
-                    currentScope.scopeVariableFactory();
                     currentScope = fatherScope;
                     if (!currentScope.equals(upMostScope)){
                         currentScope.scopeValidityManager();
