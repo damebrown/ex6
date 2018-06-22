@@ -1,0 +1,4 @@
+// var dup name
+
+int a = 5;
+double a =3; 

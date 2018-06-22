@@ -1,0 +1,7 @@
+//global
+
+int b = 5;
+
+void myMethod(boolean b){
+	b = 3;
+}

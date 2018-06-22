@@ -1,0 +1,9 @@
+//calling a method - valid
+
+//valid
+void myMethod(int a, boolean b){
+	a = 5;
+}
+int d = 5;
+boolean z = true;
+myMethod(d , c);

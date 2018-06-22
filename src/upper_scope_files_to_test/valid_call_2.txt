@@ -1,0 +1,10 @@
+//valid call 2
+void myMethod(boolean b){
+}
+
+int a = 5;
+
+myMethod(a);
+myMethod(true);
+myMethod(-1.3);
+

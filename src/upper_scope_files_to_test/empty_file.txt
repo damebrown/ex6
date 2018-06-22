@@ -1,0 +1,11 @@
+//method
+//num 1
+
+void myMethod(){
+	boolean a = 5;
+	int yo =2, b = 3, c;
+}
+
+//num 2
+void myMethod(int b){
+}

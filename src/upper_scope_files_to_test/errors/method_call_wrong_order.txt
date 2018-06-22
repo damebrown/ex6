@@ -1,0 +1,9 @@
+// method call wrong order
+
+void myMethod(int a, boolean b){
+}
+
+int a = 5;
+boolean b = true;
+
+void myMethod(b,a);

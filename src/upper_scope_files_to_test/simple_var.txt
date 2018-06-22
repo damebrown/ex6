@@ -1,0 +1,8 @@
+// some variables simple check! -V
+
+int y = 5;
+boolean t = true;
+//another one
+char tem = 'f';
+String dan = "";
+double z = -1.2;

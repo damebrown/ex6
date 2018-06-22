@@ -1,0 +1,7 @@
+//global bad assigning
+
+int b;
+//invalid
+int a = b;
+
+int a = 5;

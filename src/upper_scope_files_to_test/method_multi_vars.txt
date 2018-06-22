@@ -1,0 +1,7 @@
+//method with multiple vars
+
+void myMethod(int b, boolean a , char c){
+	double z =2
+	int yoyo = 2, i = 9, d = 0;
+}
+//should be 7 vars

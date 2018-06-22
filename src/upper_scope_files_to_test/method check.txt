@@ -1,0 +1,8 @@
+//another global
+char t = 't';
+void mymethod2(int yo, double tam){
+	int s = 5;
+}
+
+
+
