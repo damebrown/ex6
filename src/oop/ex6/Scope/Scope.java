@@ -245,8 +245,6 @@ public abstract class Scope {
     }
 
     boolean assignmentManager(String assignmentLine, Scope scope) throws IllegalTypeException {
-        //TODO make sure we support (regex wise) assignment of existing variables in setValue method
-        //TODO make sure that in the above mentioned check we check if the assigned variable is not null
         boolean assignedFlag = false;
         try{
             String[] splatAssignment = assignmentSplitter(assignmentLine);
@@ -256,11 +254,13 @@ public abstract class Scope {
                     if (array!=null){
                         for (Variable localVariable : array){
                             if (localVariable.getName().equals(variableName)){
-                                //the check if the variable is final and if the value is valid is done
-                                // in the setValue method
-                                localVariable.setValue(splatAssignment[1], variableName, this);
-                                //if code gets here, everything went well
-                                assignedFlag=true;
+                                if (!array.equals(this.fatherMethod.methodParametersArray)){
+                                    //the check if the variable is final and if the value is valid is done
+                                    // in the setValue method
+                                    localVariable.setValue(splatAssignment[1], variableName, this);
+                                    //if code gets here, everything went well
+                                    assignedFlag=true;
+                                }
                             }
                         }
                     }
