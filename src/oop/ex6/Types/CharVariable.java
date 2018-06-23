@@ -12,20 +12,20 @@ public class CharVariable extends Variable {
 
     /**
      * @param variableString the variable declaration line
-     * @param isGlobal turned on in case it is global
-     * @param isFinal turned on in case it is final
+     * @param isGlobal       turned on in case it is global
+     * @param isFinal        turned on in case it is final
      * @throws IllegalTypeException
      */
-    public CharVariable(String variableString,boolean isGlobal,boolean isFinal) throws IllegalTypeException {
-        super(variableString, isGlobal,isFinal);
-        type="char";
+    public CharVariable(String variableString, boolean isGlobal, boolean isFinal) throws IllegalTypeException {
+        super(variableString, isGlobal, isFinal);
+        type = "char";
     }
 
 
     @Override
-    public  boolean isValid(String value){
+    public boolean isValid(String value) {
         Matcher charMatcher = VALIDITY_PATTERN.matcher(value);
-        if(charMatcher.find())
+        if (charMatcher.find())
             return true;
         return false;
     }

@@ -44,24 +44,25 @@ public class MethodScope extends Scope {
     /*CONSTRUCTOR****/
 
     /**
-     *  A method scope constructor
+     * A method scope constructor
+     *
      * @param arrayOfLines the method scope lines
      * @throws IllegalScopeException
      */
     public MethodScope(ArrayList<String> arrayOfLines) throws IllegalScopeException, IllegalTypeException {
         super();
-        try{
-            if (!arrayOfLines.isEmpty()){
+        try {
+            if (!arrayOfLines.isEmpty()) {
                 scopeLinesArray.addAll(arrayOfLines);
             }
             subScopesArray = new ArrayList<>();
             methodParametersArray = new ArrayList<>();
-            fatherScope=null;
-            fatherMethod=this;
+            fatherScope = null;
+            fatherMethod = this;
             this.variableUpdater();
             generateArgs(arrayOfLines.get(0));
             methodNameAssigner(arrayOfLines.get(0));
-        } catch (IllegalScopeException e){
+        } catch (IllegalScopeException e) {
             throw new IllegalScopeException("ERROR: something with a method is wrong");
         } catch (IllegalTypeException e) {
             e.printStackTrace();
@@ -72,39 +73,41 @@ public class MethodScope extends Scope {
 
     /**
      * Verifies the method scope structure is valid
+     *
      * @return true in case it is valid
      * @throws IllegalCodeException throws exception in case it has a bad format
      */
     private boolean methodValidityChecker() throws IllegalCodeException {
         subScopesFactory(this, this);
-        int openingBracketCounter =0, closingBracketCounter =0;
-        for (String line: scopeLinesArray){
+        int openingBracketCounter = 0, closingBracketCounter = 0;
+        for (String line : scopeLinesArray) {
             Matcher returnMatcher = RETURN_PATTERN.matcher(line),
                     closingBracketMatcher = CLOSING_BRACKET_PATTERN.matcher(line),
                     openingBracketMatcher = OPENING_BRACKET_PATTERN.matcher(line),
                     lastLineMatcher = CLOSING_PATTERN.matcher(line);
-            if (openingBracketMatcher.find()){
+            if (openingBracketMatcher.find()) {
                 openingBracketCounter++;
-            } else if (closingBracketMatcher.find()){
+            } else if (closingBracketMatcher.find()) {
                 closingBracketCounter++;
-                if (scopeLinesArray.get(scopeLinesArray.size()-1).equals(line)){
+                if (scopeLinesArray.get(scopeLinesArray.size() - 1).equals(line)) {
                     //checking that the last line is a closing bracket
-                    if (!lastLineMatcher.matches()){
-                        throw new IllegalScopeException("ERROR: malformed method structure in: "+
+                    if (!lastLineMatcher.matches()) {
+                        throw new IllegalScopeException("ERROR: malformed method structure in: " +
                                 getMethodName());
                     }
                 }
-            } else if ((closingBracketCounter==openingBracketCounter-1)&&(!scopeLinesArray.get(0).
-                    equals(line))){
+            } else if ((closingBracketCounter == openingBracketCounter - 1) && (!scopeLinesArray.get(0).
+                    equals(line))) {
                 scopeValidityHelper(line, this);
             } //checking that the before last line is a return statement
-            if (scopeLinesArray.get(scopeLinesArray.size()-2).equals(line)){
+            if (scopeLinesArray.get(scopeLinesArray.size() - 2).equals(line)) {
                 scopeValidityHelper(line, this);
-                if ((!(closingBracketCounter==openingBracketCounter-1))||(!returnMatcher.find())){
-                    throw new IllegalScopeException("ERROR: malformed method structure in: "+getMethodName());
+                if ((!(closingBracketCounter == openingBracketCounter - 1)) || (!returnMatcher.find())) {
+                    throw new IllegalScopeException("ERROR: malformed method structure in: " + getMethodName());
                 }
             }
-        } return true;
+        }
+        return true;
     }
 
     /*
@@ -120,7 +123,18 @@ public class MethodScope extends Scope {
         while (parameterMatcher.find()) {
             // while finding variables generate them and add to the method
             parameterDeclaration = declarationLine.substring(parameterMatcher.start(), parameterMatcher.end());
-            methodParametersArray.addAll(Variable.variableInstantiation(parameterDeclaration,false));
+            ArrayList<Variable> newParams = Variable.variableInstantiation(parameterDeclaration,
+                    false, reachableVariables);
+            if (!newParams.isEmpty()) {
+                for (Variable newParam : newParams) {
+                    for (Variable param : newParams) {
+                        if ((param.getName().equals(newParam.getName())) && (!param.equals(newParam))) {
+                            throw new IllegalTypeException("ERROR: two method args with the same name");
+                        }
+                    }
+                }
+                methodParametersArray.addAll(newParams);
+            }
         }
     }
 
@@ -131,23 +145,24 @@ public class MethodScope extends Scope {
      * @throws IllegalCodeException
      */
     public void scopeValidityManager() throws IllegalCodeException {
-        if (!methodValidityChecker()){
+        if (!methodValidityChecker()) {
             throw new IllegalScopeException();
         }
     }
 
     /**
      * Assign the current method it's name
+     *
      * @param declarationLine The method declaration signature
      * @throws IllegalScopeException
      */
     private void methodNameAssigner(String declarationLine) throws IllegalScopeException {
         Matcher nameMatcher = METHOD_NAME_PATTERN.matcher(declarationLine);
-        if (nameMatcher.find()){
-            methodName = declarationLine.substring(nameMatcher.start()+1, nameMatcher.end());
-            if (!Sjavac.methodsArray.isEmpty()){
-                for (MethodScope method:methodsArray){
-                    if (method.getMethodName().equals(methodName)){
+        if (nameMatcher.find()) {
+            methodName = declarationLine.substring(nameMatcher.start() + 1, nameMatcher.end());
+            if (!Sjavac.methodsArray.isEmpty()) {
+                for (MethodScope method : methodsArray) {
+                    if (method.getMethodName().equals(methodName)) {
                         throw new IllegalScopeException("ERROR: already taken method name");
                     }
                 }
@@ -158,10 +173,11 @@ public class MethodScope extends Scope {
     }
 
     /**
-     *  method name getter
+     * method name getter
+     *
      * @return the method name
      */
-    public String getMethodName(){
+    public String getMethodName() {
         return methodName;
     }
 }

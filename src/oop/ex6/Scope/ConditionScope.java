@@ -15,9 +15,7 @@ import static oop.ex6.main.Sjavac.VARIABLE_DECLARATION_PATTERN;
 /**
  * the class represents a conditional scope object
  */
-public class ConditionScope extends Scope{
-
-    private MethodScope fatherMethod;
+public class ConditionScope extends Scope {
 
     private static Pattern BOOLEAN_PATTERN = Pattern.compile("^\\s*(if|while)\\s*[(]\\s*(true|false|\\w*" +
             "|[-]?\\d+(\\.?\\d+)*)\\s*(\\s*(((\\|){2}|(&&))\\s*(\\b\\w*\\b|[-]?\\d+(\\.?\\d+)*)\\s*)*)" +
@@ -28,15 +26,17 @@ public class ConditionScope extends Scope{
 
     /**
      * condition scope constructor
-     * @param arrayOfLines the scope lines
-     * @param fatherScopeInput the parent scope
-     * @param fatherMethodInput the father method
+     *
+     * @param arrayOfLines        the scope lines
+     * @param fatherScopeInput    the parent scope
+     * @param upperScopeVariables the upper scope variables
      */
-    ConditionScope(ArrayList<String> arrayOfLines, Scope fatherScopeInput, MethodScope fatherMethodInput) throws IllegalScopeException {
+    ConditionScope(ArrayList<String> arrayOfLines, Scope fatherScopeInput, ArrayList<Variable>
+            upperScopeVariables) throws IllegalScopeException {
         super();
         scopeLinesArray = arrayOfLines;
         fatherScope = fatherScopeInput;
-        fatherMethod = fatherMethodInput;
+        this.upperScopeVariables = upperScopeVariables;
         appendFatherScopeVariables();
         this.variableUpdater();
         this.checkCondition();
@@ -46,10 +46,10 @@ public class ConditionScope extends Scope{
     private void checkCondition() throws IllegalScopeException {
         String line = this.scopeLinesArray.get(0);
         Matcher conditionMatcher = BOOLEAN_PATTERN.matcher(line);
-        if (!conditionMatcher.find()){
+        if (!conditionMatcher.find()) {
             throw new IllegalScopeException("ERROR: wrong brackets in condition scope");
         }
-        if (!conditionContentValidator(line)){
+        if (!conditionContentValidator(line)) {
             throw new IllegalScopeException("ERROR: condition argument is wrong");
         }
     }
@@ -58,8 +58,8 @@ public class ConditionScope extends Scope{
     /*
      * the method add the upper scope variables
      */
-    private void appendFatherScopeVariables(){
-        if (!fatherScope.upperScopeVariables.isEmpty()){
+    private void appendFatherScopeVariables() {
+        if (!fatherScope.upperScopeVariables.isEmpty()) {
             upperScopeVariables.addAll(fatherScope.upperScopeVariables);
         }
     }
@@ -70,9 +70,9 @@ public class ConditionScope extends Scope{
      * @throws IllegalCodeException
      */
     public void scopeValidityManager() throws IllegalCodeException {
-            if (!conditionValidityChecker()){
-                throw new IllegalScopeException();
-            }
+        if (!conditionValidityChecker()) {
+            throw new IllegalScopeException();
+        }
     }
 
     /*
@@ -82,18 +82,19 @@ public class ConditionScope extends Scope{
      * @throws IllegalTypeException
      */
     private boolean conditionValidityChecker() throws IllegalScopeException, IllegalTypeException {
-        for (String line: scopeLinesArray){
+        for (String line : scopeLinesArray) {
             Matcher closingMatcher = CLOSING_BRACKET_PATTERN.matcher(line),
                     openingMatcher = OPENING_BRACKET_PATTERN.matcher(line);
-            if (line.equals(scopeLinesArray.get(0))){
+            if (line.equals(scopeLinesArray.get(0))) {
                 Matcher conditionMatcher = BOOLEAN_PATTERN.matcher(line);
-                if (!openingMatcher.find()){
+                if (!openingMatcher.find()) {
                     throw new IllegalScopeException("ERROR: wrong brackets in condition scope");
-                } if (!conditionMatcher.find()){
+                }
+                if (!conditionMatcher.find()) {
                     throw new IllegalScopeException("ERROR: wrong boolean condition in for/while loop");
                 }
-            } else if (line.equals(scopeLinesArray.get(scopeLinesArray.size()-1))){
-                if (!closingMatcher.matches()){
+            } else if (line.equals(scopeLinesArray.get(scopeLinesArray.size() - 1))) {
+                if (!closingMatcher.matches()) {
                     throw new IllegalScopeException("ERROR: wrong brackets in condition scope");
                 }
             } else {
@@ -102,7 +103,6 @@ public class ConditionScope extends Scope{
         }
         return true;
     }
-
 
 
     // add to condition class
@@ -126,25 +126,26 @@ public class ConditionScope extends Scope{
                     continue;
                 }
                 //case it is an assignment
-                if (Variable.nameValidator(currentCond)) {
+                else if (Variable.nameValidator(currentCond)) {
                     // run over reachable scopes (from the most specific one)
-                    if (!reachableVariables.isEmpty()){
+                    if (!reachableVariables.isEmpty()) {
                         for (ArrayList<Variable> array : reachableVariables) {
-                            if (array!=null) {
+                            if (array != null) {
                                 for (Variable var : array) {
                                     if (var.getName().equals(currentCond)) {
                                         if (var.getValue() != null) {
                                             currentCond = var.getValue();
                                             return conditionContentValidator(currentCond);
                                         } else
-                                            throw new IllegalScopeException("ERROR: the given condition variable is null");
+                                            throw new IllegalScopeException("ERROR: the given condition " +
+                                                    "variable is null");
                                     }
                                 }
                             }
                         }
                     }
-                    throw new IllegalScopeException("ERROR: variable is not declared");
                 }
+                throw new IllegalScopeException("ERROR: variable is not declared");
             }
         }
         return true;

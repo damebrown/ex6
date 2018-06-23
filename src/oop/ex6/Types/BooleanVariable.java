@@ -12,18 +12,18 @@ class BooleanVariable extends Variable {
 
     /**
      * @param variableString the variable declaration line
-     * @param isGlobal turned on in case it is global
-     * @param isFinal turned on in case it is final
+     * @param isGlobal       turned on in case it is global
+     * @param isFinal        turned on in case it is final
      * @throws IllegalTypeException
      */
-    public BooleanVariable(String variableString,boolean isGlobal,boolean isFinal) throws IllegalTypeException {
-        super(variableString,isGlobal,isFinal);
-        type="boolean";
+    public BooleanVariable(String variableString, boolean isGlobal, boolean isFinal) throws IllegalTypeException {
+        super(variableString, isGlobal, isFinal);
+        type = "boolean";
     }
 
 
     @Override
-    public  boolean isValid(String value){
+    public boolean isValid(String value) {
         Matcher booleanMatcher = VALIDITY_PATTERN.matcher(value);
         return booleanMatcher.matches();
     }

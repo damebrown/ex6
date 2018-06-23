@@ -4,11 +4,11 @@ import oop.ex6.main.IllegalCodeException;
 
 public class IllegalTypeException extends IllegalCodeException {
 
-    public IllegalTypeException(String errorMessage){
+    public IllegalTypeException(String errorMessage) {
         super(errorMessage);
     }
 
-    public IllegalTypeException(){
+    public IllegalTypeException() {
         super();
     }
 }
