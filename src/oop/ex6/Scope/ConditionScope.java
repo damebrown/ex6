@@ -10,7 +10,7 @@ import java.util.regex.Pattern;
 
 import static oop.ex6.main.Sjavac.CLOSING_BRACKET_PATTERN;
 import static oop.ex6.main.Sjavac.OPENING_BRACKET_PATTERN;
-import static oop.ex6.main.Sjavac.VARIABLE_DECLARATION_PATTERN;
+
 
 /**
  * the class represents a conditional scope object
