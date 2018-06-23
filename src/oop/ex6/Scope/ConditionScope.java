@@ -17,12 +17,16 @@ import static oop.ex6.main.Sjavac.OPENING_BRACKET_PATTERN;
  */
 public class ConditionScope extends Scope {
 
+    /*Constants*/
+
+    /*Patterns:*/
     private static Pattern BOOLEAN_PATTERN = Pattern.compile("^\\s*(if|while)\\s*[(]\\s*(true|false|\\w*" +
             "|[-]?\\d+(\\.?\\d+)*)\\s*(\\s*(((\\|){2}|(&&))\\s*(\\b\\w*\\b|[-]?\\d+(\\.?\\d+)*)\\s*)*)" +
             "\\s*[)]\\s*[{]\\s*");
-
     private final static Pattern DIGIT_PATTERN = Pattern.compile("(-?\\d+)(.\\d*)?+");
     private final static Pattern CONTENT_PARAM = Pattern.compile("(\\b\\w*\\b|[-]?\\d+(\\.?\\d+)*)");
+
+    /*Constructor*/
 
     /**
      * condition scope constructor
@@ -43,6 +47,10 @@ public class ConditionScope extends Scope {
     }
 
 
+    /**
+     * checking for the loop's condition's validity
+     * @throws IllegalScopeException in case of wrong condition
+     */
     private void checkCondition() throws IllegalScopeException {
         String line = this.scopeLinesArray.get(0);
         Matcher conditionMatcher = BOOLEAN_PATTERN.matcher(line);
@@ -66,7 +74,7 @@ public class ConditionScope extends Scope {
 
     @Override
     /*
-     *
+     * the scope's validity manager
      * @throws IllegalCodeException
      */
     public void scopeValidityManager() throws IllegalCodeException {
@@ -82,9 +90,11 @@ public class ConditionScope extends Scope {
      * @throws IllegalTypeException
      */
     private boolean conditionValidityChecker() throws IllegalScopeException, IllegalTypeException {
+        //iterating over the scope's lines
         for (String line : scopeLinesArray) {
             Matcher closingMatcher = CLOSING_BRACKET_PATTERN.matcher(line),
                     openingMatcher = OPENING_BRACKET_PATTERN.matcher(line);
+            //if line is the first one, checking for the boolean condition's validity
             if (line.equals(scopeLinesArray.get(0))) {
                 Matcher conditionMatcher = BOOLEAN_PATTERN.matcher(line);
                 if (!openingMatcher.find()) {
@@ -93,6 +103,7 @@ public class ConditionScope extends Scope {
                 if (!conditionMatcher.find()) {
                     throw new IllegalScopeException("ERROR: wrong boolean condition in for/while loop");
                 }
+                //checking for the presence of a closing bracket in the last line
             } else if (line.equals(scopeLinesArray.get(scopeLinesArray.size() - 1))) {
                 if (!closingMatcher.matches()) {
                     throw new IllegalScopeException("ERROR: wrong brackets in condition scope");
@@ -113,7 +124,6 @@ public class ConditionScope extends Scope {
      * @throws IllegalScopeException
      */
     private boolean conditionContentValidator(String conditionSignature) throws IllegalScopeException {
-
         Matcher booleanMatcher = CONTENT_PARAM.matcher(conditionSignature);
         // run over conditions
         String currentCond;

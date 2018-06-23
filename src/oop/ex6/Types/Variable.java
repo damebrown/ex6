@@ -1,8 +1,6 @@
 package oop.ex6.Types;
 
 import oop.ex6.Scope.Scope;
-import oop.ex6.Types.*;
-import oop.ex6.main.Sjavac;
 
 import java.util.*;
 import java.util.regex.Matcher;
@@ -14,12 +12,17 @@ import static oop.ex6.main.Sjavac.globalVariablesArray;
  * the class represent a general variable object
  */
 public abstract class Variable {
+
+    /*Constants*/
+    /*type's*/
     private static final String STRING = "String";
     private static final String INT = "int";
     private static final String DOUBLE = "double";
     private static final String CHAR = "char";
     private static final String BOOLEAN = "boolean";
     private static final String FINAL = "final";
+
+    /*Patterns*/
     private static final Pattern SEPARATOR_PATTERN = Pattern.compile("\\b\\w*\\b([ ]*=[ ]*((\\\"[^\"]*\\\")" +
             "|([^ ,;]*)))*");
     private static final Pattern SPLITTER_PATTERN = Pattern.compile("(\\b\\w*\\b)[ ]*=[ ]*((\\\"[^\"]*\\\")" +
@@ -30,29 +33,19 @@ public abstract class Variable {
             "(int|String|double|char|boolean)\\s+(\\w*)\\s*(=\\s*(([^\\\"]*)|(\\\"[^\\\"]*\\\")))*\\s*" +
             "(,\\s*(\\w*)\\s*(=\\s*(([^ \"]*)|(\\\"[^\\\"]*\\\")))*)*\\s*;?\\s*$");
 
-
-//            "^[ ]*(final\\s*)?\\b(int|String|double|char|boolean)\\b[ ]+(\\b\\w*\\b)[ ]*(=[ ]*" +
-//                    "(([^ \\\"]*)|(\\\"[^\\\"]*\\\")))*[ ]*(,[ ]*(\\b\\w*\\b)[ ]*" +
-//                    "(=[ ]*(([^ \"]*)|(\\\"[^\\\"]*\\\")))*)*[ ]*;?[ ]*$");
-
-
-    /* Data members */
-
-    public boolean isFinal = false;
-    protected boolean isGlobal;
-    protected java.lang.String name;
-    protected java.lang.String value;
+    /*instance's data members*/
+    private boolean isFinal;
+    private boolean isGlobal;
+    private java.lang.String name;
+    private java.lang.String value;
     protected static java.lang.String type;
 
-
-    public Variable() {
-    }
 
     /**
      * @param variableString the variable string declaration and assignment line
      * @param isGlobal       turned on in case the variable is global
      * @param isFinal        turned on in case the variable is final
-     * @throws IllegalTypeException
+     * @throws IllegalTypeException in case wrong variable declaration or assignment
      */
     public Variable(String variableString, boolean isGlobal, boolean isFinal) throws IllegalTypeException {
         //initialize flags
@@ -61,35 +54,40 @@ public abstract class Variable {
         // case the declaration include assignment
         if (variableString.contains("=")) {
             String[] toAssign = splitter(variableString);
-            if (globalDuplicateChecker(toAssign[0]) && this.isGlobal) { //todo changed logic
+            if (globalDuplicateChecker(toAssign[0]) && this.isGlobal) {
                 throw new IllegalTypeException("ERROR: unvacant global variable name assignment");
             } else {
+                //name assignment-
                 this.name = toAssign[0];
             }
+            //value assignment
             if (isValid(toAssign[1])) {
                 this.value = toAssign[1];
             } else {
                 throw new IllegalTypeException("ERROR: wrong " + getName() + " variable assignment");
             }
         } else if (globalDuplicateChecker(variableString) && this.isGlobal) { //added here demand for both global
-            throw new IllegalTypeException("ERROR: unvacant global variable name assignment"); //todo changed logic
+            throw new IllegalTypeException("ERROR: unvacant global variable name assignment");
         } else {
+            //name assignment-
             this.name = variableString;
         }
     }
 
     /*
      * verify there is no name duplication
-     * @param name
+     * @param name- name to check for duplicates of
      * @return true if there is duplication
      */
-    boolean globalDuplicateChecker(String name) {
-        for (Variable global : globalVariablesArray) {
-            if (global.getName().equals(name)) {
-                return true;
+    private boolean globalDuplicateChecker(String name) {
+        //iterates over global variables
+        if (!globalVariablesArray.isEmpty()){
+            for (Variable global : globalVariablesArray) {
+                if (global.getName().equals(name)) {
+                    return true;
+                }
             }
-        }
-        return false;
+        } return false;
     }
 
     /**
@@ -112,7 +110,7 @@ public abstract class Variable {
 
     /**
      * this method gets a line in which there's a decleration of a a variable, and calls the relevant
-     * consturctors upon it
+     * constructors upon it
      *
      * @param declarationString the line of declaration
      * @param isGlobal          boolean, true if a global variable
@@ -192,12 +190,12 @@ public abstract class Variable {
      * @param valueToAssign the value to assign
      * @param variableName  the variable name
      * @param scope         current scope of the variable
-     * @throws IllegalTypeException
+     * @throws IllegalTypeException in case of wrong values
      */
     public void setValue(String valueToAssign, String variableName, Scope scope) throws IllegalTypeException {
         try {
             //verify it is not final
-            if (this.isFinal) { //todo i added case where is final but no assignment
+            if (this.isFinal) {
                 throw new IllegalTypeException("ERROR: Value cannot be assigned into final variable");
                 //check if the value is a pointer to another variable
             } else if (nameValidator(variableName)) {
@@ -237,18 +235,17 @@ public abstract class Variable {
      */
     public static boolean nameValidator(String name) {
         Matcher nameMatcher = NAME_PATTERN.matcher(name);
-
         return nameMatcher.find();
     }
 
-    /**
+    /*
      * the method verifies a declaration line is in the correct structure.
      * whether it has multiple variables or a single one.
      *
-     * @param name
-     * @return
+     * @param name name to check validity of
+     * @return true iff name is valid
      */
-    public static boolean declarationValidator(String name) {
+    private static boolean declarationValidator(String name) {
         Matcher declarationMatcher = DECLARATION_PATTERN.matcher(name);
         return declarationMatcher.find();
     }
@@ -262,13 +259,11 @@ public abstract class Variable {
         return value;
     }
 
-    /**
-     * @param variableAssignment
-     * @return
-     * @throws IllegalTypeException
+    /*
+     * @param variableAssignment the assignment line
+     * @return the new assign
      */
-    protected static String referenceAssign(String variableAssignment, ArrayList<ArrayList<Variable>> nestedArray) throws IllegalTypeException {
-        //TODO MAKE THIS WORK WITH ALL OF REACHABLE VARIABLES, NOT ONLY GLOBAL, and update exceptions here
+    private static String referenceAssign(String variableAssignment, ArrayList<ArrayList<Variable>> nestedArray){
         String newAssign = "";
         if (variableAssignment.contains("=")) {
             String[] splitLine = splitter(variableAssignment);
@@ -291,13 +286,11 @@ public abstract class Variable {
     /*
      *the method receives a valid declaration line and separate it into sub array list sub string.
      * first cell is reserved to the declaration type. all other nodes are filled with variables.
-     * @param declaration
+     * @param declaration- the declaration line
      */
     private static ArrayList<String> variableSeparator(String declaration) {
-
         Matcher match = SEPARATOR_PATTERN.matcher(declaration);
         ArrayList<String> variableList = new ArrayList<>();
-
         String currentVar;
         //find all occurrences
         while (match.find()) {
@@ -308,24 +301,24 @@ public abstract class Variable {
         return variableList;
     }
 
-    /**
+    /*
      * The method is in charge of splitting variable assignment line into variable name string
      * and value string
      *
      * @param variableWithAssign the complete line to split
-     * @return
+     * @return array of strings, the splat line
      */
-    protected static String[] splitter(String variableWithAssign) {
+    private static String[] splitter(String variableWithAssign) {
         Matcher splitterMatcher = SPLITTER_PATTERN.matcher(variableWithAssign);
 
-        String[] splitted = null;
-        splitted = new String[2];
+        String[] splat;
+        splat = new String[2];
 
         if (splitterMatcher.find()) {
-            splitted[0] = splitterMatcher.group(1);
-            splitted[1] = splitterMatcher.group(2);
+            splat[0] = splitterMatcher.group(1);
+            splat[1] = splitterMatcher.group(2);
         }
-        return splitted;
+        return splat;
     }
 }
 

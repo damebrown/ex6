@@ -14,15 +14,18 @@ class IntVariable extends Variable {
      * @param variableString the variable declaration line
      * @param isGlobal       turned on in case it is global
      * @param isFinal        turned on in case it is final
-     * @throws IllegalTypeException
+     * @throws IllegalTypeException in case of wrong variable instanceiation
      */
-    public IntVariable(String variableString, boolean isGlobal, boolean isFinal) throws IllegalTypeException {
+    IntVariable(String variableString, boolean isGlobal, boolean isFinal) throws IllegalTypeException {
         super(variableString, isGlobal, isFinal);
         type = "int";
     }
 
 
     @Override
+    /*
+    checks for this class's type's variable's validity
+     */
     public boolean isValid(String value) {
         Matcher intMatcher = VALIDITY_PATTERN.matcher(value);
         return intMatcher.matches();

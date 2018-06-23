@@ -7,7 +7,8 @@ import oop.ex6.Types.Variable;
 
 import java.io.IOException;
 import java.util.ArrayList;
-import java.util.regex.*;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 public class Sjavac {
 
@@ -52,6 +53,7 @@ public class Sjavac {
 
     /*Constructor*/
 
+
     /**
      * oop.ex6.main method
      */
@@ -70,6 +72,7 @@ public class Sjavac {
         }
     }
 
+
     /*
      * nullifies all static constants
      */
@@ -82,7 +85,9 @@ public class Sjavac {
         METHOD_SCOPE_FLAG = false;
     }
 
+
     /*Methods*/
+
 
     /*
      * the method generates the global variable and method scope blocks
@@ -154,7 +159,7 @@ public class Sjavac {
 
 
     /*
-     * this method check for all methods and their scope's validity
+     * this method checks for all methods and their scope's validity
      * @throws IllegalCodeException
      */
     private void methodInitializer() throws IllegalCodeException {
@@ -172,6 +177,7 @@ public class Sjavac {
             throw new IllegalCodeException();
         }
     }
+
 
     /**
      * oop.ex6.main method

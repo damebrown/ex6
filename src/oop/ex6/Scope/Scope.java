@@ -19,27 +19,30 @@ public abstract class Scope {
 
     /* Data members */
     /* The scope's lines in the code */
-    protected ArrayList<String> scopeLinesArray;
+    ArrayList<String> scopeLinesArray;
     /* the local variables of the upper scope */
-    protected ArrayList<Variable> upperScopeVariables;
+    ArrayList<Variable> upperScopeVariables;
     /* The oop.ex6.Types.Scope local variables */
-    protected ArrayList<Variable> localVariables;
+    private ArrayList<Variable> localVariables;
     /*an array of all reachable variables*/
     public ArrayList<ArrayList<Variable>> reachableVariables;
     /* The oop.ex6.Types.Scope's upper scope */
-    protected Scope fatherScope;
+    Scope fatherScope;
     /*The oop.ex6.Types.Scope's method */
-    public MethodScope fatherMethod;
+    MethodScope fatherMethod;
     /*an array of all nested variables*/
-    static private ArrayList<ArrayList<Variable>> nestedArray = new ArrayList<ArrayList<Variable>>();
+    private static ArrayList<ArrayList<Variable>> nestedArray = new ArrayList<>();
     /*method call pattern*/
-    static final Pattern METHOD_CALL_PATTERN = Pattern.compile("(([a-zA-Z]\\w*){1})[(](\\w*)[)][;]");
+    private static final Pattern METHOD_CALL_PATTERN = Pattern.compile("(([a-zA-Z]\\w*){1})[(](\\w*)[)][;]");
     /*argument pattern*/
-    public static final Pattern ARGUMENT_PATTERN = Pattern.compile("[^,();\\s]\\w*");
+    private static final Pattern ARGUMENT_PATTERN = Pattern.compile("[^,();\\s]\\w*");
 
     /*Constructor*****/
 
-    protected Scope() {
+    /**
+     * initializes the instance's arrays
+     */
+    Scope() {
         scopeLinesArray = new ArrayList<>();
         upperScopeVariables = new ArrayList<>();
         localVariables = new ArrayList<>();
@@ -49,9 +52,15 @@ public abstract class Scope {
     /*Methods*****/
 
     /**
+     abstract method ran over by condition and method scopes
+     */
+    public abstract void scopeValidityManager() throws IllegalCodeException;
+
+
+    /**
      * the method update to current reachable variables scope, by adding it the upper scopes variables
      */
-    protected void variableUpdater() {
+    void variableUpdater() {
         if (!localVariables.isEmpty()) {
             reachableVariables.add(localVariables);
         } else {
@@ -80,7 +89,7 @@ public abstract class Scope {
     }
 
 
-    /**
+    /*
      * this function is an aid function for the scope's validity check. it checks calls for functions and
      * variable assignment lines.
      *
@@ -89,8 +98,7 @@ public abstract class Scope {
      * @throws IllegalScopeException exception due to wrong function call
      * @throws IllegalTypeException  exception due to wrong variable assignment
      */
-    protected void scopeValidityHelper(String line, Scope scope) throws IllegalScopeException,
-            IllegalTypeException {
+    void scopeValidityHelper(String line, Scope scope) throws IllegalScopeException, IllegalTypeException {
         Matcher methodCallMatcher = METHOD_CALL_PATTERN.matcher(line),
                 assignmentMatcher = ASSIGNMENT_PATTERN.matcher(line);
         //checking for method calls validity
@@ -107,14 +115,14 @@ public abstract class Scope {
         }
     }
 
-    /**
+    /*
      * creates all condition scopes variables nested in a scope (if any)
-     *
      * @param line the line to check if there's a variables declaration in it
-     * @throws IllegalTypeException
+     * @throws IllegalTypeException calls variableInstantiation method that might cause IllegalTypeException
      */
-    ArrayList<Variable> variableFactory(String line) throws IllegalTypeException {
+    private ArrayList<Variable> variableFactory(String line) throws IllegalTypeException {
         Matcher variableDeclarationMatcher = VARIABLE_DECLARATION_PATTERN.matcher(line);
+        //if a declaration is found, create the variable instance
         if (variableDeclarationMatcher.find()) {
             return Variable.variableInstantiation(line, false, reachableVariables);
         }
@@ -122,13 +130,11 @@ public abstract class Scope {
     }
 
 
-    /**
+    /*
      * makes all the scopes instances inside the received upmost scope instance
-     *
      * @param upMostScope the scope to search scopes in
      */
-    void subScopesFactory(Scope upMostScope, MethodScope method) throws IllegalCodeException,
-            IllegalScopeException {
+    void subScopesFactory(Scope upMostScope, MethodScope method) throws IllegalCodeException {
         Scope fatherScope = upMostScope, currentScope = null;
         //the array of all nested scope's variables
         nestedArray = new ArrayList<>();
@@ -159,6 +165,7 @@ public abstract class Scope {
                         subScopeLinesArray.add(line);
                         currentScope = new ConditionScope(subScopeLinesArray, fatherScope, nestedArray.get(nestedArray.size() - 1));
                         nestedArray.add(new ArrayList<>());
+                        //method.subScopesArray.add(currentScope);
                     }
                 }
             } else {
@@ -185,7 +192,7 @@ public abstract class Scope {
                     fatherScope = currentScope;
                     currentScope = new ConditionScope(subScopeLinesArray, fatherScope, nestedArray.get(nestedArray.size() - 1));
                     nestedArray.add(new ArrayList<>());
-
+                    //method.subScopesArray.add(currentScope);
                 } else {
                     //else- add the line to the current subscope's lines array
                     if (!currentScope.equals(upMostScope)) {
@@ -201,20 +208,14 @@ public abstract class Scope {
     }
 
     /*
-    abstract method ran over by condition and method scopes
-     */
-    public abstract void scopeValidityManager() throws IllegalCodeException;
-
-    /**
      * makes sure a method call is valid
-     *
      * @param line            the method call declaration line
      * @param foundMethodName the method called
      * @return true iff the call is valid
-     * @throws IllegalScopeException
-     * @throws IndexOutOfBoundsException
+     * @throws IllegalScopeException in case of a wrong method call structure
+     * @throws IndexOutOfBoundsException in case of a wrong arguments to the method
      */
-    boolean methodCallValidator(String line, String foundMethodName) throws IllegalScopeException,
+    private boolean methodCallValidator(String line, String foundMethodName) throws IllegalScopeException,
             IndexOutOfBoundsException {
         boolean nameFlag = false, existenceFlag = false;
 //        String foundMethodName = line.substring(methodNameMatcher.start(), methodNameMatcher.end());
@@ -261,12 +262,14 @@ public abstract class Scope {
                         }
                         if (!existenceFlag) {
                             //check the call is done with the suitable types
-                            Variable suitableVariable = foundMethod.methodParametersArray.get(argsCounter - 1);
-                            if (!suitableVariable.isValid(input)) {
-                                throw new IllegalScopeException("ERROR: malformed method args in " +
-                                        foundMethod.getMethodName());
-                            } else {
-                                existenceFlag = true;
+                            if (!foundMethod.methodParametersArray.isEmpty()){
+                                Variable suitableVariable = foundMethod.methodParametersArray.get(argsCounter - 1);
+                                if (!suitableVariable.isValid(input)) {
+                                    throw new IllegalScopeException("ERROR: malformed method args in " +
+                                            foundMethod.getMethodName());
+                                } else {
+                                    existenceFlag = true;
+                                }
                             }
                         }
                     }
@@ -286,20 +289,20 @@ public abstract class Scope {
                 }
             }
         } else {
-            throw new IllegalScopeException("ERROR: malformed method call in " + foundMethod.getMethodName());
+            throw new IllegalScopeException("ERROR: malformed method call in " + this.fatherMethod.getMethodName());
         }
         return existenceFlag;
     }
 
-    /**
+    /*
      * manages variables assignments
      *
      * @param assignmentLine the assignment line
      * @param scope          the scope in which there's the assignment
      * @return true iff the assignment is valid
-     * @throws IllegalTypeException
+     * @throws IllegalTypeException in case of wrong assignment
      */
-    boolean assignmentManager(String assignmentLine, Scope scope) throws IllegalTypeException,
+    private boolean assignmentManager(String assignmentLine, Scope scope) throws IllegalTypeException,
             IndexOutOfBoundsException {
         boolean assignedFlag = false;
         Variable getterVariable, setterVariable;
@@ -348,13 +351,13 @@ public abstract class Scope {
         return assignedFlag;
     }
 
-    /**
-     * splits variables assignemnts lines
+    /*
+     * splits variables-assignments-lines using regex's split function
      *
-     * @param line the assignemnt lines
+     * @param line the assignment lines
      * @return the string array of the splat line
      */
-    ArrayList<String> assignmentSplitter(String line) {
+    private ArrayList<String> assignmentSplitter(String line) {
         String[] splat = line.split("[;,=\\s]");
         ArrayList<String> splatArray = new ArrayList<>();
         for (String note : splat) {

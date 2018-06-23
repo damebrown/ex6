@@ -8,26 +8,27 @@ import java.util.regex.Pattern;
  */
 public class CharVariable extends Variable {
 
-    private final static Pattern VALIDITY_PATTERN = Pattern.compile("[\\\"\\\'].[\\\"\\\']"); //todo should include "" ?
+    private final static Pattern VALIDITY_PATTERN = Pattern.compile("[\\\"\\\'].[\\\"\\\']");
 
     /**
      * @param variableString the variable declaration line
      * @param isGlobal       turned on in case it is global
      * @param isFinal        turned on in case it is final
-     * @throws IllegalTypeException
+     * @throws IllegalTypeException in case of wrong variable instanceiation
      */
-    public CharVariable(String variableString, boolean isGlobal, boolean isFinal) throws IllegalTypeException {
+    CharVariable(String variableString, boolean isGlobal, boolean isFinal) throws IllegalTypeException {
         super(variableString, isGlobal, isFinal);
         type = "char";
     }
 
 
     @Override
+    /*
+    checks for this class's type's variable's validity
+     */
     public boolean isValid(String value) {
         Matcher charMatcher = VALIDITY_PATTERN.matcher(value);
-        if (charMatcher.find())
-            return true;
-        return false;
+        return charMatcher.find();
     }
 
 

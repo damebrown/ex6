@@ -1,0 +1,10 @@
+//TODO IMPORTANT!
+// In a case of an un-initialized global variable (meaning it is not assigned a value anywhere
+//outside a method), all methods may refer to it (regardless of their location in relation to its
+//declaration), but every method using it (in an assignment, as an argument to a method call)
+//must first assign a value to the global variable itself (even if it was assigned a value in some
+//other method).
+
+
+  //todo is 093 valid? (in doubleVariable & boolean)
+   //todo should include "" ? (in charVariable)
