@@ -36,6 +36,7 @@ public abstract class Scope {
     private static final Pattern METHOD_CALL_PATTERN = Pattern.compile("(([a-zA-Z]\\w*){1})[(](\\w*)[)][;]");
     /*argument pattern*/
     private static final Pattern ARGUMENT_PATTERN = Pattern.compile("[^,();\\s]\\w*");
+    public static final Pattern ARGUMENT_MATCHER =Pattern.compile("((?<=[(])([^\\)(]*)(?=[)]))");
 
     /*Constructor*****/
 
@@ -142,9 +143,12 @@ public abstract class Scope {
         //iterates over the scope's lines
         for (String line : scopeLinesArray) {
             Matcher closingMatcher = CLOSING_BRACKET_PATTERN.matcher(line),
+                    emptyMatcher = EMPTY_LINE_PATTERN.matcher(line),
                     openingMatcher = OPENING_BRACKET_PATTERN.matcher(line);
-            //if a new sub-scope wasn't yet found
-            if (currentScope == null) {
+            if ((line.equals(""))||(emptyMatcher.matches())){
+                continue;
+            } //if a new sub-scope wasn't yet found
+            else if (currentScope == null) {
                 //checking for variable declaration, and creates them if such exists
                 ArrayList<Variable> variables = variableFactory(line);
                 //if a declaration exist, adds to the last array in nested
@@ -165,7 +169,7 @@ public abstract class Scope {
                         subScopeLinesArray.add(line);
                         currentScope = new ConditionScope(subScopeLinesArray, fatherScope, nestedArray.get(nestedArray.size() - 1));
                         nestedArray.add(new ArrayList<>());
-                        //method.subScopesArray.add(currentScope);
+                        method.subScopesArray.add(currentScope);
                     }
                 }
             } else {
@@ -183,16 +187,16 @@ public abstract class Scope {
                     nestedArray.remove(nestedArray.size() - 1);
                     if (!currentScope.equals(upMostScope)) {
                         currentScope.scopeLinesArray.add(line);
-                        currentScope = fatherScope;
+                        currentScope = currentScope.fatherScope;
                     }
                     //if opening is found, create new subscope
                 } else if (openingMatcher.find()) {
                     ArrayList<String> subScopeLinesArray = new ArrayList<>();
                     subScopeLinesArray.add(line);
-                    fatherScope = currentScope;
-                    currentScope = new ConditionScope(subScopeLinesArray, fatherScope, nestedArray.get(nestedArray.size() - 1));
+                    Scope tempScope = new ConditionScope(subScopeLinesArray, currentScope, nestedArray.get(nestedArray.size() - 1));
+                    currentScope = tempScope;
                     nestedArray.add(new ArrayList<>());
-                    //method.subScopesArray.add(currentScope);
+                    method.subScopesArray.add(currentScope);
                 } else {
                     //else- add the line to the current subscope's lines array
                     if (!currentScope.equals(upMostScope)) {
@@ -217,34 +221,35 @@ public abstract class Scope {
      */
     private boolean methodCallValidator(String line, String foundMethodName) throws IllegalScopeException,
             IndexOutOfBoundsException {
-        boolean nameFlag = false, existenceFlag = false;
-//        String foundMethodName = line.substring(methodNameMatcher.start(), methodNameMatcher.end());
+        boolean nameFlag = false;
         MethodScope foundMethod = null;
+        //checks that a method with the called name exists
         for (MethodScope method : Sjavac.methodsArray) {
             if (foundMethodName.startsWith(method.getMethodName())) {
                 nameFlag = true;
                 foundMethod = method;
                 break;
             }
-        }
-        if (nameFlag) {
+        } if (nameFlag) {
+            //looking for the argument
             int numberOfArgs = foundMethod.methodParametersArray.size(), argsCounter = 0;
-            //String[] args = line.split("[(),;\\s]");
-            Matcher argumentMatcher = ARGUMENT_PATTERN.matcher(line);
+            Matcher argumentMatcher = ARGUMENT_MATCHER.matcher(line);
             ArrayList<String> argsArray = new ArrayList<>();
             if (!argumentMatcher.find()) {
+                // if no argument's, and no parameters for the method, return true
                 if (foundMethod.methodParametersArray.size() == 0) {
                     return true;
                 }
             } else {
-                Matcher secArgumentMatcher = ARGUMENT_PATTERN.matcher(line);
+                //else looking for the arguments in the call
+                Matcher secArgumentMatcher = ARGUMENT_MATCHER.matcher(line);
                 while (secArgumentMatcher.find()) {
                     String arg = line.substring(argumentMatcher.start(), argumentMatcher.end());
                     if ((!arg.startsWith(foundMethodName)) && (!arg.equals(""))) {
                         argsArray.add(arg);
                     }
                 }
-            }
+            } // looking for variables that might have been called with
             if (!foundMethod.reachableVariables.isEmpty()) {
                 for (String input : argsArray) {
                     argsCounter++;
@@ -255,21 +260,20 @@ public abstract class Scope {
                                 if (variable.getName().equals(input)) {
                                     if ((variable.getValue() != null) || (!array.equals(
                                             foundMethod.methodParametersArray))) {
-                                        existenceFlag = true;
+                                        //if such parameter is found, return true
+                                        return true;
                                     }
                                 }
                             }
                         }
-                        if (!existenceFlag) {
-                            //check the call is done with the suitable types
-                            if (!foundMethod.methodParametersArray.isEmpty()){
-                                Variable suitableVariable = foundMethod.methodParametersArray.get(argsCounter - 1);
-                                if (!suitableVariable.isValid(input)) {
-                                    throw new IllegalScopeException("ERROR: malformed method args in " +
-                                            foundMethod.getMethodName());
-                                } else {
-                                    existenceFlag = true;
-                                }
+                        //check the call is done with the suitable types
+                        if (!foundMethod.methodParametersArray.isEmpty()){
+                            Variable suitableVariable = foundMethod.methodParametersArray.get(argsCounter - 1);
+                            if (!suitableVariable.isValid(input)) {
+                                throw new IllegalScopeException("ERROR: malformed method args in " +
+                                        foundMethod.getMethodName());
+                            } else {
+                                return true;
                             }
                         }
                     }
@@ -283,15 +287,14 @@ public abstract class Scope {
                 //checks for option of assignment
                 for (int index = 0; index < foundMethod.methodParametersArray.size(); index++) {
                     if (foundMethod.methodParametersArray.get(index).isValid(argsArray.get(index))) {
-                        existenceFlag = true;
-                        return existenceFlag;
+                        return true;
                     }
                 }
             }
         } else {
             throw new IllegalScopeException("ERROR: malformed method call in " + this.fatherMethod.getMethodName());
         }
-        return existenceFlag;
+        return true;
     }
 
     /*

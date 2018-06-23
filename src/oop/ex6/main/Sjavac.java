@@ -28,7 +28,7 @@ public class Sjavac {
     /*opening pattern*/
     public static final Pattern OPENING_BRACKET_PATTERN = Pattern.compile("(\\{)");
     /*closing pattern*/
-    public static final Pattern CLOSING_BRACKET_PATTERN = Pattern.compile("(})");
+    public static final Pattern CLOSING_BRACKET_PATTERN = Pattern.compile("(\\s*}\\s*)");
 
     /*PATTERNS:*/
     /*variable pattern*/
@@ -48,7 +48,7 @@ public class Sjavac {
     public static final Pattern ASSIGNMENT_PATTERN = Pattern.compile("^\\s*\\b\\w*\\b\\s*=\\s*(\\b\\w*\\b|" +
             "[-]?\\d+(\\.?\\d+)|(\"[^\"]*\")|(\'.\'))\\s*;\\s*$");
     /*empty line pattern*/
-    private static final Pattern EMPTY_LINE_PATTERN = Pattern.compile("\\s*");
+    public static final Pattern EMPTY_LINE_PATTERN = Pattern.compile("\\s*");
 
 
     /*Constructor*/
